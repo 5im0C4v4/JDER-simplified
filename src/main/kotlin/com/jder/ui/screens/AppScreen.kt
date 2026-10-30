@@ -21,6 +21,7 @@ import com.jder.domain.model.SequenceDiagramState
 import com.jder.domain.model.UseCaseDiagramState
 import com.jder.ui.components.DiagramTabRow
 import com.jder.ui.theme.ThemeState
+import java.io.File
 
 @Composable
 fun AppScreen(
@@ -39,6 +40,7 @@ fun AppScreen(
     themeState: ThemeState,
     currentType: DiagramType,
     onTypeChange: (DiagramType) -> Unit,
+    erPreviewFile: File? = null,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         DiagramTabRow(
@@ -63,6 +65,7 @@ fun AppScreen(
                         state = erState,
                         repository = erRepository,
                         themeState = themeState,
+                        previewFile = erPreviewFile,
                     )
                 DiagramType.RELATIONAL ->
                     RelationalDiagramScreen(

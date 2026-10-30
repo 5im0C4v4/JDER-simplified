@@ -69,6 +69,7 @@ fun <T> DiagramEditorScaffold(
     repository: DiagramFileRepository<T>,
     themeState: ThemeState,
     messenger: SnackbarMessenger,
+    previewFile: File? = null,
     renderImage: (DiagramPalette) -> ImageBitmap,
     emptyHint: String,
     tools: List<DiagramTool>,
@@ -91,7 +92,35 @@ fun <T> DiagramEditorScaffold(
                 onSuccess = {
                     state.updateDiagramName(name)
                     state.markAsSaved(file.absolutePath)
-                    messenger.show("Diagramma salvato: ${file.name}")
+                    if (previewFile == null) {
+                        messenger.show("Diagramma salvato: ${file.name}")
+                    } else {
+                        try {
+                            ImageExporter()
+                                .exportToPNG(
+                                    renderImage(
+                                        themeState.selectedPalette.lightScheme.toExportPalette()
+                                    ),
+                                    previewFile,
+                                )
+                                .fold(
+                                    onSuccess = {
+                                        messenger.show(
+                                            "Diagramma salvato e anteprima aggiornata: ${previewFile.name}"
+                                        )
+                                    },
+                                    onFailure = {
+                                        messenger.show(
+                                            "Diagramma salvato, ma errore nell'esportazione dell'anteprima: ${it.message}"
+                                        )
+                                    },
+                                )
+                        } catch (e: Exception) {
+                            messenger.show(
+                                "Diagramma salvato, ma errore nell'esportazione dell'anteprima: ${e.message}"
+                            )
+                        }
+                    }
                 },
                 onFailure = { messenger.show("Errore nel salvataggio: ${it.message}") },
             )

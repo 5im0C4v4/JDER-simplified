@@ -32,6 +32,7 @@ open class DiagramFileRepository<T>(
             val tagged = JsonObject(mapOf(DIAGRAM_TYPE_KEY to JsonPrimitive(type.key)) + content)
             val encoded = diagramJson.encodeToString(JsonObject.serializer(), tagged)
             val target = file.toPath()
+            Files.createDirectories(target.toAbsolutePath().parent)
             val temporary =
                 Files.createTempFile(target.toAbsolutePath().parent, "${file.name}.", ".tmp")
             try {

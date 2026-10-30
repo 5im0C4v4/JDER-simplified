@@ -38,12 +38,14 @@ import com.jder.ui.dialogs.RelationshipPropertiesDialog
 import com.jder.ui.strings.UiStrings
 import com.jder.ui.theme.ThemeState
 import com.jder.ui.utils.renderERDiagramToBitmap
+import java.io.File
 
 @Composable
 fun ERDiagramScreen(
     state: ERDiagramState,
     repository: ERDiagramRepository,
     themeState: ThemeState,
+    previewFile: File? = null,
 ) {
     val messenger = rememberSnackbarMessenger()
     var showEntityDialog by remember { mutableStateOf(false) }
@@ -128,6 +130,7 @@ fun ERDiagramScreen(
         repository = repository,
         themeState = themeState,
         messenger = messenger,
+        previewFile = previewFile,
         renderImage = { renderERDiagramToBitmap(state.diagram, it) },
         emptyHint =
             "Scegli Entità, Relazione o Nota dalla barra degli strumenti e clicca sulla lavagna.\n" +

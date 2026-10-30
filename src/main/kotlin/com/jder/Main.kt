@@ -30,11 +30,11 @@ import com.jder.data.ERDiagramRepository
 import com.jder.data.LogicDiagramRepository
 import com.jder.data.RelationalDiagramRepository
 import com.jder.data.SequenceDiagramRepository
-import com.jder.data.UpdateChecker
 import com.jder.data.UseCaseDiagramRepository
 import com.jder.domain.model.ClassDiagramState
 import com.jder.domain.model.DiagramEditorState
 import com.jder.domain.model.DiagramType
+import com.jder.domain.model.ERDiagram
 import com.jder.domain.model.ERDiagramState
 import com.jder.domain.model.LogicDiagramState
 import com.jder.domain.model.RelationalDiagramState
@@ -49,22 +49,107 @@ import com.jder.ui.components.appMenus
 import com.jder.ui.components.diagramTypeKeys
 import com.jder.ui.components.toggleFullscreen
 import com.jder.ui.dialogs.AboutDialog
-import com.jder.ui.dialogs.UpdateAvailableDialog
 import com.jder.ui.screens.AppScreen
 import com.jder.ui.theme.JDERTheme
 import com.jder.ui.theme.ThemeState
 import com.jder.ui.utils.isMacOS
 import com.jder.ui.utils.setDockIcon
 import java.awt.Dimension
+import java.io.File
+import kotlin.system.exitProcess
 
-fun main() {
+private data class LaunchOptions(val file: File? = null, val preview: File? = null)
+
+private data class InitialDiagram(val diagram: ERDiagram? = null, val error: String? = null)
+
+private const val USAGE =
+    "Usage: java -jar jder.jar [--file <diagram.json> [--preview <preview.png>]]"
+
+private fun parseLaunchOptions(args: Array<String>): LaunchOptions? {
+    var file: File? = null
+    var preview: File? = null
+    var index = 0
+    while (index < args.size) {
+        when (val option = args[index]) {
+            "--help",
+            "-h" -> {
+                println(USAGE)
+                return null
+            }
+            "--file",
+            "--preview" -> {
+                if (index + 1 >= args.size || args[index + 1].startsWith("--")) {
+                    System.err.println("Missing path after $option")
+                    System.err.println(USAGE)
+                    exitProcess(2)
+                }
+                val path = File(args[index + 1]).absoluteFile.toPath().normalize().toFile()
+                if (option == "--file") {
+                    if (file != null) {
+                        System.err.println("--file may only be specified once")
+                        exitProcess(2)
+                    }
+                    file = path
+                } else {
+                    if (preview != null) {
+                        System.err.println("--preview may only be specified once")
+                        exitProcess(2)
+                    }
+                    preview = path
+                }
+                index++
+            }
+            else -> {
+                System.err.println("Unknown argument: $option")
+                System.err.println(USAGE)
+                exitProcess(2)
+            }
+        }
+        index++
+    }
+    if (preview != null && file == null) {
+        System.err.println("--preview requires --file")
+        System.err.println(USAGE)
+        exitProcess(2)
+    }
+    if (file != null && file.toPath() == preview?.toPath()) {
+        System.err.println("The JSON diagram path and PNG preview path must be different")
+        exitProcess(2)
+    }
+    return LaunchOptions(file, preview)
+}
+
+private fun initialDiagram(file: File?): InitialDiagram {
+    if (file == null || !file.exists()) {
+        return InitialDiagram(diagram = file?.let { ERDiagram(name = it.nameWithoutExtension) })
+    }
+    if (!file.isFile) return InitialDiagram(error = "The diagram path is not a file: $file")
+    return ERDiagramRepository()
+        .loadDiagram(file)
+        .fold(
+            onSuccess = { InitialDiagram(diagram = it) },
+            onFailure = {
+                InitialDiagram(
+                    error = "Could not open diagram '$file': ${it.message ?: "unknown error"}"
+                )
+            },
+        )
+}
+
+fun main(args: Array<String>) {
+    val options = parseLaunchOptions(args) ?: return
+    val initialDiagram = initialDiagram(options.file)
     System.setProperty("apple.awt.application.name", "JDER")
     System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS")
     System.setProperty("compose.application.configure.swing.globals", "true")
     setDockIcon("jder_icon.png")
     application {
         val windowState = rememberWindowState(placement = WindowPlacement.Maximized)
-        val erState = remember { ERDiagramState() }
+        val erState = remember {
+            ERDiagramState().also { state ->
+                initialDiagram.diagram?.let { state.loadDiagram(it, options.file?.path) }
+            }
+        }
         val relationalState = remember { RelationalDiagramState() }
         val useCaseState = remember { UseCaseDiagramState() }
         val sequenceState = remember { SequenceDiagramState() }
@@ -83,8 +168,7 @@ fun main() {
         var showExitDialog by remember { mutableStateOf(false) }
         var showAboutDialog by remember { mutableStateOf(false) }
         var shouldExit by remember { mutableStateOf(false) }
-        var updateUrl by remember { mutableStateOf<String?>(null) }
-        LaunchedEffect(Unit) { updateUrl = UpdateChecker.findUpdate() }
+        var startupError by remember { mutableStateOf(initialDiagram.error) }
         fun hasUnsavedChanges() =
             erState.isModified ||
                 relationalState.isModified ||
@@ -192,11 +276,19 @@ fun main() {
                             themeState = themeState,
                             currentType = currentType,
                             onTypeChange = { currentType = it },
+                            erPreviewFile = options.preview,
                         )
                     }
                 }
-                updateUrl?.let {
-                    UpdateAvailableDialog(downloadUrl = it, onDismiss = { updateUrl = null })
+                startupError?.let { error ->
+                    AlertDialog(
+                        onDismissRequest = { startupError = null },
+                        title = { Text("Diagram could not be opened") },
+                        text = { Text(error) },
+                        confirmButton = {
+                            TextButton(onClick = { startupError = null }) { Text("OK") }
+                        },
+                    )
                 }
                 if (showAboutDialog) {
                     AboutDialog(onDismiss = { showAboutDialog = false })

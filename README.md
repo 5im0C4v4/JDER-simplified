@@ -198,8 +198,6 @@ Poi eseguilo con:
 java -jar JDER.jar
 ```
 
-All'avvio JDER controlla l'ultima release su GitHub: se il `JDER.jar` pubblicato è un file diverso da quello in uso (anche se ha lo stesso nome), propone di scaricare l'aggiornamento.
-
 ### Diagrammi di esempio
 
 La cartella [`examples/`](examples/) contiene un diagramma per ogni tipo (E/R, schema logico, classi, casi d'uso, sequenza e logico), apribili da JDER con **File → Apri Diagramma**. Gli screenshot del sito, in versione chiara e scura, sono generati da questi file.
@@ -220,6 +218,20 @@ Per creare un JAR standalone:
 
 Il file di output si troverà in `build/libs/JDER.jar`.
 
+### Avvio da Obsidian
+
+L'editor può essere avviato direttamente su un diagramma E/R specifico:
+
+```bash
+java -jar jder.jar --file "ERModel/json/customer.json" --preview "ERModel/png/customer.png"
+```
+
+`--file` è il percorso del JSON da aprire; se non esiste, JDER avvia un diagramma E/R vuoto associato a quel percorso e lo crea al primo salvataggio. `--preview` è facoltativo e indica il PNG da aggiornare a ogni salvataggio del JSON. Percorsi con spazi sono supportati se racchiusi tra virgolette. I percorsi di output possono includere cartelle non ancora esistenti. Se un JSON esistente non è leggibile o non è un diagramma E/R, JDER mostra un errore invece di aprire un altro diagramma.
+
+Non vengono eseguiti controlli automatici degli aggiornamenti né richieste di rete all'avvio.
+
+Per ottenere il JAR standalone usato dal plugin, eseguire `./gradlew jar` dalla cartella del progetto e copiare `build/libs/JDER.jar` nella cartella `ERModel/` del vault.
+
 ---
 
 ## Struttura del Progetto
@@ -239,7 +251,6 @@ src/
     │   │   ├── LogicDiagramRepository.kt      # Persistenza JSON Diagramma Logico
     │   │   ├── ImageExporter.kt               # Esportazione PNG via Skia
     │   │   ├── JsonConfig.kt                  # Configurazione kotlinx.serialization
-    │   │   └── UpdateChecker.kt               # Controllo aggiornamenti dalla release GitHub
     │   ├── domain/model/
     │   │   ├── DiagramEditorState.kt          # Stato comune: file, modifiche, annulla/ripeti, zoom
     │   │   ├── UndoHistory.kt                 # Cronologia annulla/ripeti
