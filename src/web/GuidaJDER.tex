@@ -251,11 +251,12 @@ Per avviare l'applicazione:
   e che la variabile di ambiente \texttt{JAVA\_HOME} sia configurata correttamente.
 \end{tcolorbox}
 
-Se non si indica un file da aprire (vedi sezione~\ref{sec:cli}), \jder{} si apre mostrando la
-finestra \uielement{Scegli il tipo di diagramma}, con un'anteprima di ogni tipo nella versione
-chiara o scura secondo il tema attivo (tema e palette si possono cambiare anche da qui). Facendo
-clic su un'anteprima, oppure con \key{Ctrl} + \key{1} \ldots{} \key{Ctrl} + \key{6}, si apre la
-scheda del tipo scelto; gli altri tipi restano raggiungibili dalla barra delle schede.
+Se non si indica un file da aprire, oppure se il file indicato non esiste o non se ne riconosce il
+tipo (vedi sezione~\ref{sec:cli}), \jder{} si apre mostrando la finestra
+\uielement{Scegli il tipo di diagramma}, con un'anteprima di ogni tipo nella versione chiara o
+scura secondo il tema attivo (tema e palette si possono cambiare anche da qui). Facendo clic su
+un'anteprima, oppure con \key{Ctrl} + \key{1} \ldots{} \key{Ctrl} + \key{6}, si apre la scheda
+del tipo scelto; gli altri tipi restano raggiungibili dalla barra delle schede.
 
 All'avvio \jder{} controlla l'ultima versione pubblicata su GitHub: se il \texttt{JDER.jar}
 pubblicato è diverso da quello in uso, la finestra \uielement{Aggiornamento disponibile} propone
@@ -268,12 +269,14 @@ Avviando \jder{} da terminale si possono aggiungere alcune opzioni:
 
 \begin{itemize}
   \item \texttt{-{}-json <file>} --- apre il diagramma salvato nel file JSON indicato, direttamente
-        nella scheda del suo tipo. Il file si può indicare anche da solo, senza
-        \texttt{-{}-json}.
-  \item \texttt{-{}-png <file>} --- esporta il diagramma nell'immagine indicata (con estensione
-        \texttt{.png}) e la aggiorna automaticamente a ogni modifica (richiede il file JSON).
+        nella scheda del suo tipo.
+  \item \texttt{-{}-png <file>} --- esporta il diagramma nell'immagine PNG indicata e la aggiorna
+        automaticamente a ogni modifica.
   \item \texttt{-h}, \texttt{-{}-help} --- mostra l'elenco delle opzioni ed esce.
 \end{itemize}
+
+Se manca, al nome del file viene aggiunta l'estensione (\texttt{.json} o \texttt{.png}), quindi
+\texttt{-{}-json diagramma} apre \texttt{diagramma.json}.
 
 Per esempio, per modificare un diagramma tenendo sempre aggiornata la sua immagine:
 
@@ -282,9 +285,17 @@ Per esempio, per modificare un diagramma tenendo sempre aggiornata la sua immagi
 \end{center}
 
 Con \texttt{-{}-png} l'esportazione automatica (vedi sezione~\ref{sec:autoexport}) parte già
-attiva e si può disattivare dal menu \menu{File}. Il file JSON invece non viene salvato da solo:
-si salva come al solito oppure attivando il salvataggio automatico. Se un'opzione non è valida o
-il file non si può aprire, il motivo viene scritto nel terminale e l'applicazione non si apre.
+attiva e si può disattivare dal menu \menu{File}. Un file JSON esistente invece non viene salvato
+da solo: si salva come al solito oppure attivando il salvataggio automatico.
+
+Se il file JSON non esiste ancora, o non si riconosce che tipo di diagramma contiene, \jder{}
+mostra all'avvio la finestra \uielement{Scegli il tipo di diagramma} e apre il file nella scheda
+scelta; un file che non esiste viene creato alla prima modifica, con il salvataggio automatico già
+attivo. Anche \texttt{-{}-png} si può usare da solo: in questo caso si sceglie il tipo all'avvio e
+l'immagine segue il nuovo diagramma.
+
+Se un'opzione non è valida o il file non si può aprire, il motivo viene scritto nel terminale e
+l'applicazione termina.
 
 % =============================================================
 \section{Interfaccia Principale}

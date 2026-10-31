@@ -5,7 +5,6 @@ import com.jder.data.detectDiagramType
 import com.jder.domain.model.DiagramEditorState
 import com.jder.domain.model.DiagramType
 import java.io.File
-import java.nio.file.Files
 import kotlin.system.exitProcess
 
 private const val JSON_OPTION = "--json"
@@ -16,10 +15,13 @@ const val COMMAND_LINE_USAGE =
 
 Opzioni:
   --json <file>  apre il diagramma salvato nel file JSON, nella scheda del suo tipo
-                 (se non esiste, crea un nuovo diagramma ER e lo salva alla prima modifica)
-  --png <file>   salva il diagramma come immagine PNG (file con estensione .png) e la
-                 aggiorna automaticamente a ogni modifica (richiede il file JSON)
+                 (se il file non esiste o il tipo non si riconosce, il tipo si sceglie
+                 all'avvio; un file nuovo viene salvato alla prima modifica)
+  --png <file>   salva il diagramma come immagine PNG e la aggiorna automaticamente a
+                 ogni modifica
   -h, --help     mostra questo messaggio ed esce
+
+Se manca, al nome del file viene aggiunta l'estensione .json o .png.
 
 Esempio:
   java -jar JDER.jar --json diagramma.json --png diagramma.png"""
@@ -55,38 +57,26 @@ fun parseCommandLine(args: Array<String>): CommandLineOptions {
             throw CommandLineException("l'opzione $option è ripetuta")
         }
     }
-    val jsonFile = files[JSON_OPTION]
-    val pngFile = files[PNG_OPTION]
-    if (jsonFile != null) {
-        if (jsonFile.isDirectory) throw CommandLineException("${jsonFile.path} è una cartella")
-        if (jsonFile.parentFile?.isDirectory != true) {
-            throw CommandLineException("la cartella ${jsonFile.parent} non esiste")
-        }
-    }
-    if (pngFile != null) {
-        if (jsonFile == null) throw CommandLineException("$PNG_OPTION richiede anche il file JSON")
-        if (!pngFile.extension.equals("png", ignoreCase = true)) {
-            throw CommandLineException(
-                "il file indicato con $PNG_OPTION deve avere estensione .png"
-            )
-        }
-        if (pngFile.isDirectory) throw CommandLineException("${pngFile.path} è una cartella")
-        if (pngFile.parentFile?.isDirectory != true) {
-            throw CommandLineException("la cartella ${pngFile.parent} non esiste")
-        }
-        if (pngFile.exists() && Files.isSameFile(pngFile.toPath(), jsonFile.toPath())) {
-            throw CommandLineException("$PNG_OPTION e $JSON_OPTION indicano lo stesso file")
+    val jsonFile = files[JSON_OPTION]?.withExtension(".json")
+    val pngFile = files[PNG_OPTION]?.withExtension(".png")
+    listOfNotNull(jsonFile, pngFile).forEach { file ->
+        if (file.isDirectory) throw CommandLineException("${file.path} è una cartella")
+        if (file.parentFile?.isDirectory != true) {
+            throw CommandLineException("la cartella ${file.parent} non esiste")
         }
     }
     return CommandLineOptions(jsonFile, pngFile)
 }
 
-fun readDiagramType(file: File): DiagramType =
+private fun File.withExtension(extension: String): File =
+    if (name.endsWith(extension, ignoreCase = true)) this else File(path + extension)
+
+fun readDiagramType(file: File): DiagramType? =
     if (!file.exists()) {
-        DiagramType.ER
+        null
     } else
         try {
-            detectDiagramType(file) ?: DiagramType.ER
+            detectDiagramType(file)
         } catch (e: Exception) {
             exitWithError("impossibile aprire ${file.path}: ${e.message}")
         }
@@ -96,17 +86,18 @@ fun <T> openStartupDiagram(
     repository: DiagramFileRepository<T>,
     options: CommandLineOptions,
 ) {
-    val file = options.jsonFile ?: return
-    if (file.exists()) {
-        val diagram =
-            repository.loadDiagram(file).getOrElse {
-                exitWithError("impossibile aprire ${file.path}: ${it.message}")
-            }
-        state.loadDiagram(diagram, file.absolutePath)
-    } else {
-        state.newDiagram()
-        state.currentFile = file.absolutePath
-        state.isAutoSaveEnabled = true
+    options.jsonFile?.let { file ->
+        if (file.exists()) {
+            val diagram =
+                repository.loadDiagram(file).getOrElse {
+                    exitWithError("impossibile aprire ${file.path}: ${it.message}")
+                }
+            state.loadDiagram(diagram, file.absolutePath)
+        } else {
+            state.newDiagram()
+            state.currentFile = file.absolutePath
+            state.isAutoSaveEnabled = true
+        }
     }
     options.pngFile?.let {
         state.imageFile = it.absolutePath

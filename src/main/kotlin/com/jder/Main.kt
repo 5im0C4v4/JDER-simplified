@@ -81,23 +81,19 @@ fun main(args: Array<String>) {
     val sequenceRepository = SequenceDiagramRepository()
     val classRepository = ClassDiagramRepository()
     val logicRepository = LogicDiagramRepository()
-    val startupType =
-        options.jsonFile?.let { file ->
-            val type = readDiagramType(file)
-            when (type) {
-                DiagramType.ER -> openStartupDiagram(erState, erRepository, options)
-                DiagramType.RELATIONAL ->
-                    openStartupDiagram(relationalState, relationalRepository, options)
-                DiagramType.CLASS_DIAGRAM ->
-                    openStartupDiagram(classState, classRepository, options)
-                DiagramType.USE_CASE -> openStartupDiagram(useCaseState, useCaseRepository, options)
-                DiagramType.SEQUENCE ->
-                    openStartupDiagram(sequenceState, sequenceRepository, options)
-                DiagramType.LOGIC -> openStartupDiagram(logicState, logicRepository, options)
-            }
-            file.parentFile?.let { lastUsedDirectory = it }
-            type
+    fun openStartupDiagramAs(type: DiagramType) =
+        when (type) {
+            DiagramType.ER -> openStartupDiagram(erState, erRepository, options)
+            DiagramType.RELATIONAL ->
+                openStartupDiagram(relationalState, relationalRepository, options)
+            DiagramType.CLASS_DIAGRAM -> openStartupDiagram(classState, classRepository, options)
+            DiagramType.USE_CASE -> openStartupDiagram(useCaseState, useCaseRepository, options)
+            DiagramType.SEQUENCE -> openStartupDiagram(sequenceState, sequenceRepository, options)
+            DiagramType.LOGIC -> openStartupDiagram(logicState, logicRepository, options)
         }
+    val startupType = options.jsonFile?.let(::readDiagramType)
+    startupType?.let(::openStartupDiagramAs)
+    (options.jsonFile ?: options.pngFile)?.parentFile?.let { lastUsedDirectory = it }
     System.setProperty("apple.awt.application.name", "JDER")
     System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS")
     System.setProperty("compose.application.configure.swing.globals", "true")
@@ -129,6 +125,10 @@ fun main(args: Array<String>) {
                 DiagramType.SEQUENCE -> sequenceState
                 DiagramType.LOGIC -> logicState
             }
+        fun selectType(type: DiagramType) {
+            if (currentType == null) openStartupDiagramAs(type)
+            currentType = type
+        }
         fun requestExit() {
             val isFlushed = menuHost.commands?.flushAutoSave?.invoke() != false
             if (!isFlushed || hasUnsavedChanges()) {
@@ -165,7 +165,7 @@ fun main(args: Array<String>) {
                     themeState = themeState,
                     windowState = windowState,
                     currentType = currentType,
-                    onTypeChange = { currentType = it },
+                    onTypeChange = { selectType(it) },
                     onAbout = { showAboutDialog = true },
                     onExit = { requestExit() },
                     uriHandler = LocalUriHandler.current,
@@ -174,8 +174,8 @@ fun main(args: Array<String>) {
                 AppMenuBar(menus = menus, onAbout = { showAboutDialog = true })
                 DockMenu(
                     onNewDiagram = { type ->
-                        currentType = type
-                        pendingNewDiagram = type
+                        if (currentType != null) pendingNewDiagram = type
+                        selectType(type)
                     }
                 )
             }
@@ -190,7 +190,7 @@ fun main(args: Array<String>) {
                             when {
                                 event.type != KeyEventType.KeyDown -> false
                                 (event.isCtrlPressed || event.isMetaPressed) && typeIndex >= 0 -> {
-                                    currentType = DiagramType.entries[typeIndex]
+                                    selectType(DiagramType.entries[typeIndex])
                                     true
                                 }
                                 !isMacOS && event.key == Key.F11 -> {
@@ -220,7 +220,7 @@ fun main(args: Array<String>) {
                             logicRepository = logicRepository,
                             themeState = themeState,
                             currentType = currentType,
-                            onTypeChange = { currentType = it },
+                            onTypeChange = { selectType(it) },
                         )
                     }
                 }

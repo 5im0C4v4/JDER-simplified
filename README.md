@@ -207,11 +207,13 @@ All'avvio JDER controlla l'ultima release su GitHub: se il `JDER.jar` pubblicato
 
 `JDER.jar` accetta anche alcune opzioni:
 
-| Opzione         | Descrizione                                                                                                                               |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `--json <file>` | Apre il diagramma salvato nel file JSON, direttamente nella scheda del suo tipo                                                           |
-| `--png <file>`  | Esporta il diagramma nell'immagine indicata (con estensione `.png`) e la aggiorna automaticamente a ogni modifica (richiede il file JSON) |
-| `-h`, `--help`  | Mostra l'elenco delle opzioni ed esce                                                                                                     |
+| Opzione         | Descrizione                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------- |
+| `--json <file>` | Apre il diagramma salvato nel file JSON, direttamente nella scheda del suo tipo               |
+| `--png <file>`  | Esporta il diagramma nell'immagine PNG indicata e la aggiorna automaticamente a ogni modifica |
+| `-h`, `--help`  | Mostra l'elenco delle opzioni ed esce                                                         |
+
+Se manca, al nome del file viene aggiunta l'estensione (`.json` o `.png`), quindi `--json diagramma` apre `diagramma.json`.
 
 Per esempio, per modificare un diagramma tenendo sempre aggiornata la sua immagine:
 
@@ -219,7 +221,11 @@ Per esempio, per modificare un diagramma tenendo sempre aggiornata la sua immagi
 java -jar JDER.jar --json diagramma.json --png diagramma.png
 ```
 
-Con `--png` l'esportazione automatica parte già attiva e si può disattivare dal menu **File**. Il file JSON invece non viene salvato da solo: si salva come al solito oppure attivando **File → Salvataggio Automatico**. Se un'opzione non è valida o il file non si può aprire, JDER scrive il motivo nel terminale ed esce senza aprire la finestra.
+Con `--png` l'esportazione automatica parte già attiva e si può disattivare dal menu **File**. Un file JSON esistente invece non viene salvato da solo: si salva come al solito oppure attivando **File → Salvataggio Automatico**.
+
+Se il file JSON non esiste ancora, o non si riconosce che tipo di diagramma contiene, JDER mostra all'avvio la scelta del tipo di diagramma e apre il file nella scheda scelta; un file che non esiste viene creato alla prima modifica, con il salvataggio automatico già attivo. Anche `--png` si può usare da solo: in questo caso si sceglie il tipo all'avvio e l'immagine segue il nuovo diagramma.
+
+Se un'opzione non è valida o il file non si può aprire, JDER scrive il motivo nel terminale ed esce.
 
 ### Diagrammi di esempio
 
