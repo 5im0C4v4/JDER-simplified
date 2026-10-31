@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalUriHandler
+import com.jder.ui.utils.openSafely
 
 @Composable
 fun UpdateAvailableDialog(downloadUrl: String, onDismiss: () -> Unit) {
@@ -20,9 +21,7 @@ fun UpdateAvailableDialog(downloadUrl: String, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(
                 onClick = {
-                    try {
-                        uriHandler.openUri(downloadUrl)
-                    } catch (_: Exception) {}
+                    uriHandler.openSafely(downloadUrl)
                     onDismiss()
                 }
             ) {

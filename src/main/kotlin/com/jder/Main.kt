@@ -44,10 +44,13 @@ import com.jder.ui.components.AppMenuBar
 import com.jder.ui.components.DiagramMenuHost
 import com.jder.ui.components.DockMenu
 import com.jder.ui.components.LocalDiagramMenuHost
+import com.jder.ui.components.ToastHost
+import com.jder.ui.components.Toasts
 import com.jder.ui.components.WindowMenuBar
 import com.jder.ui.components.appMenus
 import com.jder.ui.components.diagramTypeKeys
 import com.jder.ui.components.lastUsedDirectory
+import com.jder.ui.components.logError
 import com.jder.ui.components.toggleFullscreen
 import com.jder.ui.dialogs.AboutDialog
 import com.jder.ui.dialogs.UpdateAvailableDialog
@@ -59,16 +62,12 @@ import com.jder.ui.utils.setDockIcon
 import java.awt.Dimension
 
 fun main(args: Array<String>) {
-    val options =
-        try {
-            parseCommandLine(args)
-        } catch (e: CommandLineException) {
-            exitWithError(e.message, showUsageHint = true)
-        }
+    val options = parseCommandLine(args)
     if (options.showHelp) {
         println(COMMAND_LINE_USAGE)
         return
     }
+    options.warnings.forEach(Toasts::warning)
     val erState = ERDiagramState()
     val relationalState = RelationalDiagramState()
     val useCaseState = UseCaseDiagramState()
@@ -81,18 +80,20 @@ fun main(args: Array<String>) {
     val sequenceRepository = SequenceDiagramRepository()
     val classRepository = ClassDiagramRepository()
     val logicRepository = LogicDiagramRepository()
-    fun openStartupDiagramAs(type: DiagramType) =
+    fun openStartupDiagramAs(type: DiagramType, startupOptions: CommandLineOptions) =
         when (type) {
-            DiagramType.ER -> openStartupDiagram(erState, erRepository, options)
+            DiagramType.ER -> openStartupDiagram(erState, erRepository, startupOptions)
             DiagramType.RELATIONAL ->
-                openStartupDiagram(relationalState, relationalRepository, options)
-            DiagramType.CLASS_DIAGRAM -> openStartupDiagram(classState, classRepository, options)
-            DiagramType.USE_CASE -> openStartupDiagram(useCaseState, useCaseRepository, options)
-            DiagramType.SEQUENCE -> openStartupDiagram(sequenceState, sequenceRepository, options)
-            DiagramType.LOGIC -> openStartupDiagram(logicState, logicRepository, options)
+                openStartupDiagram(relationalState, relationalRepository, startupOptions)
+            DiagramType.CLASS_DIAGRAM ->
+                openStartupDiagram(classState, classRepository, startupOptions)
+            DiagramType.USE_CASE ->
+                openStartupDiagram(useCaseState, useCaseRepository, startupOptions)
+            DiagramType.SEQUENCE ->
+                openStartupDiagram(sequenceState, sequenceRepository, startupOptions)
+            DiagramType.LOGIC -> openStartupDiagram(logicState, logicRepository, startupOptions)
         }
-    val startupType = options.jsonFile?.let(::readDiagramType)
-    startupType?.let(::openStartupDiagramAs)
+    val startup = prepareStartupDiagram(options, ::openStartupDiagramAs)
     (options.jsonFile ?: options.pngFile)?.parentFile?.let { lastUsedDirectory = it }
     System.setProperty("apple.awt.application.name", "JDER")
     System.setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS")
@@ -102,13 +103,18 @@ fun main(args: Array<String>) {
         val windowState = rememberWindowState(placement = WindowPlacement.Maximized)
         val themeState = remember { ThemeState() }
         val menuHost = remember { DiagramMenuHost() }
-        var currentType by remember { mutableStateOf(startupType) }
+        var currentType by remember { mutableStateOf(startup.type) }
         var pendingNewDiagram by remember { mutableStateOf<DiagramType?>(null) }
         var showExitDialog by remember { mutableStateOf(false) }
         var showAboutDialog by remember { mutableStateOf(false) }
         var shouldExit by remember { mutableStateOf(false) }
         var updateUrl by remember { mutableStateOf<String?>(null) }
-        LaunchedEffect(Unit) { updateUrl = UpdateChecker.findUpdate() }
+        LaunchedEffect(Unit) {
+            updateUrl =
+                UpdateChecker.findUpdate()
+                    .onFailure { logError("Controllo degli aggiornamenti non riuscito", it) }
+                    .getOrNull()
+        }
         fun hasUnsavedChanges() =
             erState.isModified ||
                 relationalState.isModified ||
@@ -126,7 +132,7 @@ fun main(args: Array<String>) {
                 DiagramType.LOGIC -> logicState
             }
         fun selectType(type: DiagramType) {
-            if (currentType == null) openStartupDiagramAs(type)
+            if (currentType == null) startup.pendingOptions?.let { openStartupDiagramAs(type, it) }
             currentType = type
         }
         fun requestExit() {
@@ -224,6 +230,7 @@ fun main(args: Array<String>) {
                         )
                     }
                 }
+                ToastHost(isDarkTheme = themeState.isDarkTheme)
                 updateUrl?.let {
                     UpdateAvailableDialog(downloadUrl = it, onDismiss = { updateUrl = null })
                 }

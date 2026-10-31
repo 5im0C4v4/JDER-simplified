@@ -25,8 +25,8 @@ import com.jder.ui.components.RelationalContextMenuType
 import com.jder.ui.components.RelationalDiagramCanvas
 import com.jder.ui.components.RelationalElement
 import com.jder.ui.components.RelationalPropertiesPanel
+import com.jder.ui.components.Toasts
 import com.jder.ui.components.contextMenuType
-import com.jder.ui.components.rememberSnackbarMessenger
 import com.jder.ui.dialogs.AddColumnDialog
 import com.jder.ui.dialogs.EditColumnDialog
 import com.jder.ui.dialogs.ForeignKeyDialog
@@ -42,7 +42,6 @@ fun RelationalDiagramScreen(
     repository: RelationalDiagramRepository,
     themeState: ThemeState,
 ) {
-    val messenger = rememberSnackbarMessenger()
     var showTableDialog by remember { mutableStateOf(false) }
     var showNoteDialog by remember { mutableStateOf(false) }
     var showAddColumnDialog by remember { mutableStateOf(false) }
@@ -101,7 +100,7 @@ fun RelationalDiagramScreen(
         }
         add(
             ContextMenuItem("Elimina", Icons.Default.Delete, isDestructive = true) {
-                state.deleteSelection()?.let(messenger::show)
+                state.deleteSelection()?.let(Toasts::success)
             }
         )
     }
@@ -109,7 +108,6 @@ fun RelationalDiagramScreen(
         state = state,
         repository = repository,
         themeState = themeState,
-        messenger = messenger,
         renderImage = { renderRelationalDiagramToBitmap(state.diagram, it) },
         emptyHint =
             "Scegli Tabella o Nota dalla barra degli strumenti e clicca sulla lavagna.\n" +
@@ -156,11 +154,11 @@ fun RelationalDiagramScreen(
                 onEditColumn = { tableId, column -> columnToEdit = ColumnEdit(tableId, column) },
                 onDeleteColumn = { tableId, columnId ->
                     state.deleteColumn(tableId, columnId)
-                    messenger.show(UiStrings.deleted("Colonna"))
+                    Toasts.success(UiStrings.deleted("Colonna"))
                 },
                 onDeleteForeignKey = { columnId ->
                     state.deleteForeignKey(columnId)
-                    messenger.show("Chiave esterna eliminata")
+                    Toasts.success("Chiave esterna eliminata")
                 },
                 onClose = { state.clearSelection() },
             )
@@ -208,7 +206,7 @@ fun RelationalDiagramScreen(
                         it.copy(name = newName, width = newWidth, documentation = newDoc)
                     }
                     showTableDialog = false
-                    messenger.show("Tabella modificata")
+                    Toasts.success("Tabella modificata")
                 },
             )
         }
@@ -224,7 +222,7 @@ fun RelationalDiagramScreen(
                     onConfirm = { newText ->
                         state.updateNote(note.id) { it.copy(text = newText) }
                         showNoteDialog = false
-                        messenger.show("Nota modificata")
+                        Toasts.success("Nota modificata")
                     },
                 )
             }
@@ -237,7 +235,7 @@ fun RelationalDiagramScreen(
                 onConfirm = { column ->
                     state.addColumns(tableId, listOf(column))
                     showAddColumnDialog = false
-                    messenger.show("Colonna aggiunta")
+                    Toasts.success("Colonna aggiunta")
                 },
             )
         }
@@ -250,7 +248,7 @@ fun RelationalDiagramScreen(
             onConfirm = { column ->
                 state.updateColumn(edit.tableId, column)
                 columnToEdit = null
-                messenger.show("Colonna modificata")
+                Toasts.success("Colonna modificata")
             },
         )
     }
@@ -264,7 +262,7 @@ fun RelationalDiagramScreen(
                 onConfirm = { columns ->
                     state.addColumns(source.id, columns)
                     foreignKeyRequest = null
-                    messenger.show("Chiave esterna creata")
+                    Toasts.success("Chiave esterna creata")
                 },
             )
         }

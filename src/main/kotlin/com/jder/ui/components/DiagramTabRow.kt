@@ -5,6 +5,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import com.jder.domain.model.DiagramType
 
 private const val WORD_JOINER = '\u2060'
@@ -22,6 +23,7 @@ fun DiagramTabRow(
             Tab(
                 selected = currentType == type,
                 onClick = { onTypeChange(type) },
+                modifier = Modifier.focusProperties { canFocus = false },
                 text = { Text(if (isModified(type)) "$label •" else label) },
             )
         }

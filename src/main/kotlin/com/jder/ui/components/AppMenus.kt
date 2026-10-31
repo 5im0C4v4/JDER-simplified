@@ -13,6 +13,7 @@ import com.jder.domain.model.DiagramType
 import com.jder.ui.theme.ColorPalettes
 import com.jder.ui.theme.ThemeState
 import com.jder.ui.utils.isMacOS
+import com.jder.ui.utils.openSafely
 
 private const val GUIDE_URL = "https://jder.it/guida.pdf"
 private const val WEBSITE_URL = "https://jder.it/"
@@ -347,9 +348,3 @@ private fun helpEntries(uriHandler: UriHandler, onAbout: () -> Unit): List<AppMe
             add(AppMenuEntry.Action("Informazioni su JDER", onClick = onAbout))
         }
     }
-
-private fun UriHandler.openSafely(url: String) {
-    try {
-        openUri(url)
-    } catch (_: Exception) {}
-}

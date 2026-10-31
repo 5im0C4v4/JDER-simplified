@@ -1,6 +1,7 @@
 package com.jder.data
 
 import java.io.File
+import java.io.IOException
 import java.io.OutputStream
 import java.net.URI
 import java.net.http.HttpClient
@@ -31,14 +32,8 @@ private class GitHubAsset(
 )
 
 object UpdateChecker {
-    suspend fun findUpdate(): String? =
-        withContext(Dispatchers.IO) {
-            try {
-                checkLatestRelease()
-            } catch (_: Exception) {
-                null
-            }
-        }
+    suspend fun findUpdate(): Result<String?> =
+        withContext(Dispatchers.IO) { runCatching { checkLatestRelease() } }
 
     private fun checkLatestRelease(): String? {
         val jar = runningJar() ?: return null
@@ -68,7 +63,9 @@ object UpdateChecker {
                 .header("User-Agent", "JDER")
                 .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-        if (response.statusCode() !in 200..299) return null
+        if (response.statusCode() !in 200..299) {
+            throw IOException("GitHub ha risposto con il codice ${response.statusCode()}")
+        }
         val body = response.body()
         return releaseJson.decodeFromString(GitHubRelease.serializer(), body).assets.firstOrNull {
             it.name.endsWith(".jar")

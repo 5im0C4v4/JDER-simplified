@@ -50,6 +50,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.jder.domain.model.DiagramType
 import com.jder.ui.components.ToolbarPaletteTheme
 import com.jder.ui.components.diagramTypeKeys
+import com.jder.ui.components.logError
 import com.jder.ui.theme.ThemeState
 import com.jder.ui.utils.shortcutLabel
 import kotlinx.coroutines.Dispatchers
@@ -187,6 +188,7 @@ private fun DiagramTypeCard(
 private fun loadScreenshot(path: String): ImageBitmap? =
     try {
         useResource(path, ::loadImageBitmap)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        logError("Impossibile caricare l'anteprima $path", e)
         null
     }

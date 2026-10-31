@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
@@ -217,17 +218,19 @@ fun FileManagerDialog(
                                         ?.sortedWith(
                                             compareBy<File> { !it.isDirectory }
                                                 .thenBy { it.name.lowercase() }
-                                        ) ?: emptyList()
+                                        ) ?: return@remember null
                                 if (showOnlySupportedFiles) {
                                     allFiles.filter { it.isDirectory || it.extension == "json" }
                                 } else {
                                     allFiles
                                 }
-                            } catch (_: Exception) {
-                                emptyList()
+                            } catch (e: Exception) {
+                                logError("Impossibile leggere ${currentDirectory.path}", e)
+                                null
                             }
                         }
-                    if (files.isEmpty()) {
+                    if (files.isNullOrEmpty()) {
+                        val isUnreadable = files == null
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center,
@@ -237,18 +240,24 @@ fun FileManagerDialog(
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 Icon(
-                                    Icons.Default.FolderOpen,
+                                    if (isUnreadable) Icons.Default.ErrorOutline
+                                    else Icons.Default.FolderOpen,
                                     contentDescription = null,
                                     modifier = Modifier.size(48.dp),
                                     tint =
-                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                            alpha = 0.5f
-                                        ),
+                                        if (isUnreadable) MaterialTheme.colorScheme.error
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                                alpha = 0.5f
+                                            ),
                                 )
                                 Text(
-                                    "Cartella vuota",
+                                    if (isUnreadable) "Impossibile leggere la cartella"
+                                    else "Cartella vuota",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color =
+                                        if (isUnreadable) MaterialTheme.colorScheme.error
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }

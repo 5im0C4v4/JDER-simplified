@@ -30,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
@@ -71,7 +72,8 @@ fun WindowMenuBar(menus: List<AppMenu>, modifier: Modifier = Modifier) {
                         Box {
                             TextButton(
                                 onClick = { openMenuTitle = menu.title },
-                                modifier = Modifier.height(32.dp),
+                                modifier =
+                                    Modifier.height(32.dp).focusProperties { canFocus = false },
                                 shape = MaterialTheme.shapes.small,
                                 colors =
                                     ButtonDefaults.textButtonColors(

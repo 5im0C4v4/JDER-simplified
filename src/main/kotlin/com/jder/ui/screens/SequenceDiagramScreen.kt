@@ -25,8 +25,8 @@ import com.jder.ui.components.DiagramTool
 import com.jder.ui.components.SequenceContextMenuType
 import com.jder.ui.components.SequenceDiagramCanvas
 import com.jder.ui.components.SequencePropertiesPanel
+import com.jder.ui.components.Toasts
 import com.jder.ui.components.contextMenuType
-import com.jder.ui.components.rememberSnackbarMessenger
 import com.jder.ui.dialogs.CreateSequenceMessageDialog
 import com.jder.ui.dialogs.EditSequenceMessageDialog
 import com.jder.ui.dialogs.LifelinePropertiesDialog
@@ -42,7 +42,6 @@ fun SequenceDiagramScreen(
     repository: SequenceDiagramRepository,
     themeState: ThemeState,
 ) {
-    val messenger = rememberSnackbarMessenger()
     var showLifelineDialog by remember { mutableStateOf(false) }
     var showMessageDialog by remember { mutableStateOf(false) }
     var showFragmentDialog by remember { mutableStateOf(false) }
@@ -98,7 +97,7 @@ fun SequenceDiagramScreen(
         }
         add(
             ContextMenuItem("Elimina", Icons.Default.Delete, isDestructive = true) {
-                state.deleteSelection()?.let(messenger::show)
+                state.deleteSelection()?.let(Toasts::success)
             }
         )
     }
@@ -110,7 +109,6 @@ fun SequenceDiagramScreen(
         state = state,
         repository = repository,
         themeState = themeState,
-        messenger = messenger,
         renderImage = { renderSequenceDiagramToBitmap(state.diagram, it) },
         emptyHint =
             "Scegli Attore, Oggetto o un altro partecipante dalla barra degli strumenti e clicca " +
@@ -209,7 +207,7 @@ fun SequenceDiagramScreen(
                         it.copy(name = newName, type = newType, documentation = newDoc)
                     }
                     showLifelineDialog = false
-                    messenger.show("Linea di vita modificata")
+                    Toasts.success("Linea di vita modificata")
                 },
             )
         }
@@ -222,7 +220,7 @@ fun SequenceDiagramScreen(
                 onConfirm = { newLabel, newType ->
                     state.updateMessage(message.id) { it.copy(label = newLabel, type = newType) }
                     showMessageDialog = false
-                    messenger.show("Messaggio modificato")
+                    Toasts.success("Messaggio modificato")
                 },
             )
         }
@@ -243,7 +241,7 @@ fun SequenceDiagramScreen(
                         )
                     }
                     showFragmentDialog = false
-                    messenger.show("Frammento modificato")
+                    Toasts.success("Frammento modificato")
                 },
             )
         }
@@ -259,7 +257,7 @@ fun SequenceDiagramScreen(
                     onConfirm = { newText ->
                         state.updateNote(note.id) { it.copy(text = newText) }
                         showNoteDialog = false
-                        messenger.show("Nota modificata")
+                        Toasts.success("Nota modificata")
                     },
                 )
             }
@@ -276,7 +274,7 @@ fun SequenceDiagramScreen(
                     label,
                     type,
                 )
-                messenger.show("Messaggio creato")
+                Toasts.success("Messaggio creato")
                 pendingMessage = null
             },
         )

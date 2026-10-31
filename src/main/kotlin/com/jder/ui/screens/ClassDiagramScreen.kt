@@ -24,8 +24,8 @@ import com.jder.ui.components.DiagramContextMenu
 import com.jder.ui.components.DiagramSelectionMenu
 import com.jder.ui.components.DiagramTool
 import com.jder.ui.components.PendingRelation
+import com.jder.ui.components.Toasts
 import com.jder.ui.components.contextMenuType
-import com.jder.ui.components.rememberSnackbarMessenger
 import com.jder.ui.dialogs.ClassEntityDialog
 import com.jder.ui.dialogs.ClassMemberDialog
 import com.jder.ui.dialogs.ClassRelationDialog
@@ -41,7 +41,6 @@ fun ClassDiagramScreen(
     repository: ClassDiagramRepository,
     themeState: ThemeState,
 ) {
-    val messenger = rememberSnackbarMessenger()
     var showClassDialog by remember { mutableStateOf(false) }
     var showRelationDialog by remember { mutableStateOf(false) }
     var showNoteDialog by remember { mutableStateOf(false) }
@@ -96,7 +95,7 @@ fun ClassDiagramScreen(
         }
         add(
             ContextMenuItem("Elimina", Icons.Default.Delete, isDestructive = true) {
-                state.deleteSelection()?.let(messenger::show)
+                state.deleteSelection()?.let(Toasts::success)
             }
         )
     }
@@ -104,7 +103,6 @@ fun ClassDiagramScreen(
         state = state,
         repository = repository,
         themeState = themeState,
-        messenger = messenger,
         renderImage = { renderClassDiagramToBitmap(state.diagram, it) },
         emptyHint =
             "Scegli Classe, Interfaccia, Enum o Nota dalla barra degli strumenti e clicca sulla lavagna",
@@ -166,7 +164,7 @@ fun ClassDiagramScreen(
                 onDeleteMember = { memberId ->
                     state.selectedClassId?.let {
                         state.deleteMemberFromClass(it, memberId)
-                        messenger.show("Membro eliminato")
+                        Toasts.success("Membro eliminato")
                     }
                 },
                 onClose = { state.clearSelection() },
@@ -213,7 +211,7 @@ fun ClassDiagramScreen(
                             )
                         }
                         showClassDialog = false
-                        messenger.show("Classe modificata")
+                        Toasts.success("Classe modificata")
                     },
                 )
             }
@@ -235,7 +233,7 @@ fun ClassDiagramScreen(
                             )
                         }
                         showRelationDialog = false
-                        messenger.show("Relazione modificata")
+                        Toasts.success("Relazione modificata")
                     },
                 )
             }
@@ -251,7 +249,7 @@ fun ClassDiagramScreen(
                     onConfirm = { newText ->
                         state.updateNote(note.id) { it.copy(text = newText) }
                         showNoteDialog = false
-                        messenger.show("Nota modificata")
+                        Toasts.success("Nota modificata")
                     },
                 )
             }
@@ -264,7 +262,7 @@ fun ClassDiagramScreen(
                 onConfirm = { member ->
                     state.addMemberToClass(classId, member, isMethod = false)
                     showAddAttributeDialog = false
-                    messenger.show("Attributo aggiunto")
+                    Toasts.success("Attributo aggiunto")
                 },
             )
         }
@@ -277,7 +275,7 @@ fun ClassDiagramScreen(
                 onConfirm = { member ->
                     state.addMemberToClass(classId, member, isMethod = true)
                     showAddMethodDialog = false
-                    messenger.show("Metodo aggiunto")
+                    Toasts.success("Metodo aggiunto")
                 },
             )
         }
@@ -287,7 +285,7 @@ fun ClassDiagramScreen(
             onDismiss = { pendingRelation = null },
             onConfirm = { type ->
                 state.addRelation(relation.sourceId, relation.targetId, type)
-                messenger.show("Relazione creata")
+                Toasts.success("Relazione creata")
                 pendingRelation = null
             },
         )

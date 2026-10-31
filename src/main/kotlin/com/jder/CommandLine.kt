@@ -4,8 +4,8 @@ import com.jder.data.DiagramFileRepository
 import com.jder.data.detectDiagramType
 import com.jder.domain.model.DiagramEditorState
 import com.jder.domain.model.DiagramType
+import com.jder.ui.components.Toasts
 import java.io.File
-import kotlin.system.exitProcess
 
 private const val JSON_OPTION = "--json"
 private const val PNG_OPTION = "--png"
@@ -26,71 +26,95 @@ Se manca, al nome del file viene aggiunta l'estensione .json o .png.
 Esempio:
   java -jar JDER.jar --json diagramma.json --png diagramma.png"""
 
-class CommandLineException(message: String) : Exception(message)
-
 class CommandLineOptions(
     val jsonFile: File? = null,
     val pngFile: File? = null,
     val showHelp: Boolean = false,
+    val warnings: List<String> = emptyList(),
 )
+
+class StartupDiagram(val type: DiagramType?, val pendingOptions: CommandLineOptions?)
 
 fun parseCommandLine(args: Array<String>): CommandLineOptions {
     val files = mutableMapOf<String, File>()
+    val warnings = mutableListOf<String>()
     var index = 0
     while (index < args.size) {
         val arg = args[index++]
         val isOption = arg.startsWith("-")
-        if (!isOption) throw CommandLineException("argomento non previsto: $arg")
+        if (!isOption) {
+            warnings += "Argomento non previsto: $arg"
+            continue
+        }
         val option = arg.substringBefore('=')
         when {
             option == "-h" || option == "--help" -> return CommandLineOptions(showHelp = true)
-            option != JSON_OPTION && option != PNG_OPTION ->
-                throw CommandLineException("opzione sconosciuta: $option")
+            option != JSON_OPTION && option != PNG_OPTION -> {
+                warnings += "Opzione sconosciuta: $option"
+                continue
+            }
         }
         val path =
             when {
                 '=' in arg -> arg.substringAfter('=')
                 else -> args.getOrNull(index)?.takeUnless { it.startsWith("-") }?.also { index++ }
             }
-        if (path.isNullOrEmpty()) throw CommandLineException("manca il file dopo $option")
-        if (files.put(option, File(path).absoluteFile) != null) {
-            throw CommandLineException("l'opzione $option è ripetuta")
+        when {
+            path.isNullOrEmpty() -> warnings += "Manca il file dopo $option"
+            option in files -> warnings += "Opzione $option ripetuta: viene usato il primo file"
+            else -> files[option] = File(path).absoluteFile
         }
     }
-    val jsonFile = files[JSON_OPTION]?.withExtension(".json")
-    val pngFile = files[PNG_OPTION]?.withExtension(".png")
-    listOfNotNull(jsonFile, pngFile).forEach { file ->
-        if (file.isDirectory) throw CommandLineException("${file.path} è una cartella")
-        if (file.parentFile?.isDirectory != true) {
-            throw CommandLineException("la cartella ${file.parent} non esiste")
-        }
-    }
-    return CommandLineOptions(jsonFile, pngFile)
+    val jsonFile = files[JSON_OPTION]?.withExtension(".json")?.takeIfUsable(JSON_OPTION, warnings)
+    val pngFile = files[PNG_OPTION]?.withExtension(".png")?.takeIfUsable(PNG_OPTION, warnings)
+    return CommandLineOptions(jsonFile, pngFile, warnings = warnings)
 }
 
 private fun File.withExtension(extension: String): File =
     if (name.endsWith(extension, ignoreCase = true)) this else File(path + extension)
 
-fun readDiagramType(file: File): DiagramType? =
-    if (!file.exists()) {
-        null
-    } else
-        try {
-            detectDiagramType(file)
-        } catch (e: Exception) {
-            exitWithError("impossibile aprire ${file.path}: ${e.message}")
+private fun File.takeIfUsable(option: String, warnings: MutableList<String>): File? {
+    val problem =
+        when {
+            isDirectory -> "$path è una cartella"
+            parentFile?.isDirectory != true -> "la cartella $parent non esiste"
+            else -> return this
         }
+    warnings += "Opzione $option ignorata: $problem"
+    return null
+}
+
+fun prepareStartupDiagram(
+    options: CommandLineOptions,
+    openAs: (DiagramType, CommandLineOptions) -> Boolean,
+): StartupDiagram {
+    val jsonFile = options.jsonFile ?: return StartupDiagram(null, options)
+    val type =
+        readDiagramType(jsonFile).getOrElse {
+            warnCannotOpen(jsonFile, it, options)
+            return StartupDiagram(null, null)
+        }
+    return when {
+        type == null -> StartupDiagram(null, options)
+        openAs(type, options) -> StartupDiagram(type, null)
+        else -> StartupDiagram(null, null)
+    }
+}
+
+fun readDiagramType(file: File): Result<DiagramType?> =
+    if (!file.exists()) Result.success(null) else runCatching { detectDiagramType(file) }
 
 fun <T> openStartupDiagram(
     state: DiagramEditorState<T>,
     repository: DiagramFileRepository<T>,
     options: CommandLineOptions,
-) {
+): Boolean {
     options.jsonFile?.let { file ->
         if (file.exists()) {
             val diagram =
                 repository.loadDiagram(file).getOrElse {
-                    exitWithError("impossibile aprire ${file.path}: ${it.message}")
+                    warnCannotOpen(file, it, options)
+                    return false
                 }
             state.loadDiagram(diagram, file.absolutePath)
         } else {
@@ -103,10 +127,12 @@ fun <T> openStartupDiagram(
         state.imageFile = it.absolutePath
         state.isAutoExportEnabled = true
     }
+    return true
 }
 
-fun exitWithError(message: String?, showUsageHint: Boolean = false): Nothing {
-    System.err.println("Errore: $message")
-    if (showUsageHint) System.err.println("Usa --help per vedere le opzioni disponibili.")
-    exitProcess(1)
+private fun warnCannotOpen(file: File, cause: Throwable, options: CommandLineOptions) {
+    Toasts.warning("Impossibile aprire ${file.name}", cause)
+    if (options.pngFile != null) {
+        Toasts.warning("Opzione $PNG_OPTION ignorata: il file JSON non si può aprire")
+    }
 }

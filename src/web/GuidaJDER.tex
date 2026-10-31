@@ -251,8 +251,8 @@ Per avviare l'applicazione:
   e che la variabile di ambiente \texttt{JAVA\_HOME} sia configurata correttamente.
 \end{tcolorbox}
 
-Se non si indica un file da aprire, oppure se il file indicato non esiste o non se ne riconosce il
-tipo (vedi sezione~\ref{sec:cli}), \jder{} si apre mostrando la finestra
+Se non si indica un file da aprire, oppure se il file indicato non esiste, non se ne riconosce il
+tipo o non si può aprire (vedi sezione~\ref{sec:cli}), \jder{} si apre mostrando la finestra
 \uielement{Scegli il tipo di diagramma}, con un'anteprima di ogni tipo nella versione chiara o
 scura secondo il tema attivo (tema e palette si possono cambiare anche da qui). Facendo clic su
 un'anteprima, oppure con \key{Ctrl} + \key{1} \ldots{} \key{Ctrl} + \key{6}, si apre la scheda
@@ -294,8 +294,10 @@ scelta; un file che non esiste viene creato alla prima modifica, con il salvatag
 attivo. Anche \texttt{-{}-png} si può usare da solo: in questo caso si sceglie il tipo all'avvio e
 l'immagine segue il nuovo diagramma.
 
-Se un'opzione non è valida o il file non si può aprire, il motivo viene scritto nel terminale e
-l'applicazione termina.
+Se un'opzione non è valida, \jder{} la ignora e lo segnala all'apertura con un avviso (vedi
+sezione~\ref{sec:messaggi}). Se invece il file JSON esiste ma non si può aprire, l'avviso ne indica
+il motivo e \jder{} parte dalla scelta del tipo di diagramma senza usare né il file né l'immagine
+indicata con \texttt{-{}-png}, così da non sovrascriverli.
 
 % =============================================================
 \section{Interfaccia Principale}
@@ -437,6 +439,26 @@ un elemento. Mostra le informazioni dell'elemento selezionato e permette di:
 
 Il pannello si chiude tramite il pulsante \textbf{X} in alto a destra o deselezionando
 l'elemento.
+
+\subsection{Messaggi}
+\label{sec:messaggi}
+
+L'esito delle operazioni compare in basso al centro della finestra con un breve messaggio, il cui
+colore ne indica il tipo:
+
+\begin{itemize}
+  \item \textbf{verde} (segno di spunta) --- conferma che un'operazione è riuscita, per esempio un
+        salvataggio; scompare da solo dopo qualche secondo;
+  \item \textbf{giallo} (triangolo) --- avviso, per esempio un'opzione da riga di comando non
+        valida; scompare dopo una decina di secondi;
+  \item \textbf{rosso} (cerchio con punto esclamativo) --- errore, per esempio un file che non si
+        può salvare; resta visibile finché non lo si chiude.
+\end{itemize}
+
+Avvisi ed errori si chiudono con il pulsante \textbf{X} e, se \jder{} è stato avviato da
+terminale, vengono scritti anche lì. Più messaggi si impilano uno sopra l'altro: un nuovo
+messaggio verde sostituisce quello verde precedente, mentre avvisi ed errori restano finché non
+scadono o non vengono chiusi.
 
 % =============================================================
 \Needspace{14cm}

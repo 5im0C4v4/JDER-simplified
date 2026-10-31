@@ -27,7 +27,7 @@ import com.jder.ui.components.ERContextMenuType
 import com.jder.ui.components.ERDiagramCanvas
 import com.jder.ui.components.ERElement
 import com.jder.ui.components.ERPropertiesPanel
-import com.jder.ui.components.rememberSnackbarMessenger
+import com.jder.ui.components.Toasts
 import com.jder.ui.dialogs.AddAttributeDialog
 import com.jder.ui.dialogs.CreateConnectionDialog
 import com.jder.ui.dialogs.EditAttributeDialog
@@ -45,7 +45,6 @@ fun ERDiagramScreen(
     repository: ERDiagramRepository,
     themeState: ThemeState,
 ) {
-    val messenger = rememberSnackbarMessenger()
     var showEntityDialog by remember { mutableStateOf(false) }
     var showRelationshipDialog by remember { mutableStateOf(false) }
     var showNoteDialog by remember { mutableStateOf(false) }
@@ -64,7 +63,7 @@ fun ERDiagramScreen(
     fun convertSelectedRelationship() {
         state.selectedRelationshipId?.let {
             state.convertToAssociativeEntity(it)
-            messenger.show("Relazione convertita in entità associativa")
+            Toasts.success("Relazione convertita in entità associativa")
         }
     }
     fun selectedType(): ERContextMenuType? =
@@ -118,7 +117,7 @@ fun ERDiagramScreen(
             }
             add(
                 ContextMenuItem("Elimina", Icons.Default.Delete, isDestructive = true) {
-                    state.deleteSelection()?.let(messenger::show)
+                    state.deleteSelection()?.let(Toasts::success)
                 }
             )
         }
@@ -127,7 +126,6 @@ fun ERDiagramScreen(
         state = state,
         repository = repository,
         themeState = themeState,
-        messenger = messenger,
         renderImage = { renderERDiagramToBitmap(state.diagram, it) },
         emptyHint =
             "Scegli Entità, Relazione o Nota dalla barra degli strumenti e clicca sulla lavagna.\n" +
@@ -176,7 +174,7 @@ fun ERDiagramScreen(
                     state.selectedRelationshipId?.let {
                         state.deleteAttributeFromRelationship(it, attributeId)
                     }
-                    messenger.show(UiStrings.deleted("Attributo"))
+                    Toasts.success(UiStrings.deleted("Attributo"))
                 },
                 onEditConnection = { entityId, connection ->
                     connectionToEdit = ConnectionEdit(entityId, connection)
@@ -184,7 +182,7 @@ fun ERDiagramScreen(
                 onDeleteConnection = { entityId ->
                     state.selectedRelationshipId?.let {
                         state.deleteConnection(it, entityId)
-                        messenger.show(UiStrings.deleted("Connessione"))
+                        Toasts.success(UiStrings.deleted("Connessione"))
                     }
                 },
                 onConvertToAssociativeEntity = ::convertSelectedRelationship,
@@ -236,7 +234,7 @@ fun ERDiagramScreen(
                     onConfirm = { updated ->
                         state.updateEntity(entity.id) { updated }
                         showEntityDialog = false
-                        messenger.show("Entità modificata")
+                        Toasts.success("Entità modificata")
                     },
                 )
             }
@@ -251,7 +249,7 @@ fun ERDiagramScreen(
                     onConfirm = { updated ->
                         state.updateRelationship(rel.id) { updated }
                         showRelationshipDialog = false
-                        messenger.show("Relazione modificata")
+                        Toasts.success("Relazione modificata")
                     },
                 )
             }
@@ -267,7 +265,7 @@ fun ERDiagramScreen(
                     onConfirm = { newText ->
                         state.updateNote(note.id) { it.copy(text = newText) }
                         showNoteDialog = false
-                        messenger.show("Nota modificata")
+                        Toasts.success("Nota modificata")
                     },
                 )
             }
@@ -281,7 +279,7 @@ fun ERDiagramScreen(
                     state.addAttributeToRelationship(it, attribute)
                 }
                 showAddAttributeDialog = false
-                messenger.show("Attributo aggiunto")
+                Toasts.success("Attributo aggiunto")
             },
         )
     }
@@ -297,7 +295,7 @@ fun ERDiagramScreen(
                     state.updateAttributeInRelationship(it, attribute.id, updated)
                 }
                 attributeToEdit = null
-                messenger.show("Attributo modificato")
+                Toasts.success("Attributo modificato")
             },
         )
     }
@@ -315,7 +313,7 @@ fun ERDiagramScreen(
                 onConfirm = { entityId, cardinality ->
                     state.addConnection(relId, entityId, cardinality)
                     showCreateConnectionDialog = false
-                    messenger.show("Connessione creata")
+                    Toasts.success("Connessione creata")
                 },
             )
         }
@@ -337,7 +335,7 @@ fun ERDiagramScreen(
                 onConfirm = { newEntityId, newCardinality ->
                     state.updateConnection(relId, edit.entityId, newEntityId, newCardinality)
                     connectionToEdit = null
-                    messenger.show("Connessione modificata")
+                    Toasts.success("Connessione modificata")
                 },
             )
         }

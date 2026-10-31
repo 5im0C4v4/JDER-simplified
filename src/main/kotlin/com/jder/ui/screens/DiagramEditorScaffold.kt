@@ -48,13 +48,12 @@ import com.jder.ui.components.ConfirmOpenDiagramDialog
 import com.jder.ui.components.DiagramMenuCommands
 import com.jder.ui.components.DiagramPalette
 import com.jder.ui.components.DiagramSelectionMenu
-import com.jder.ui.components.DiagramSnackbarHost
 import com.jder.ui.components.DiagramTool
 import com.jder.ui.components.DiagramToolbar
 import com.jder.ui.components.FileManagerDialog
 import com.jder.ui.components.FileManagerMode
 import com.jder.ui.components.LocalDiagramMenuHost
-import com.jder.ui.components.SnackbarMessenger
+import com.jder.ui.components.Toasts
 import com.jder.ui.components.toExportPalette
 import com.jder.ui.theme.ThemeState
 import java.io.File
@@ -77,7 +76,6 @@ fun <T> DiagramEditorScaffold(
     state: DiagramEditorState<T>,
     repository: DiagramFileRepository<T>,
     themeState: ThemeState,
-    messenger: SnackbarMessenger,
     renderImage: (DiagramPalette) -> ImageBitmap,
     emptyHint: String,
     tools: List<DiagramTool>,
@@ -114,12 +112,10 @@ fun <T> DiagramEditorScaffold(
             ?.let(::File)
     fun autoSave(file: File): Boolean =
         writeDiagram(file)
-            .onFailure { messenger.show("Errore nel salvataggio automatico: ${it.message}") }
+            .onFailure { Toasts.error("Errore nel salvataggio automatico", it) }
             .isSuccess
     fun reportAutoExport(result: Result<Unit>): Boolean =
-        result
-            .onFailure { messenger.show("Errore nell'esportazione automatica: ${it.message}") }
-            .isSuccess
+        result.onFailure { Toasts.error("Errore nell'esportazione automatica", it) }.isSuccess
     fun flushAutoSave(): Boolean {
         val isSaved = autoSaveFile()?.let(::autoSave) ?: true
         val key = currentImageKey()
@@ -140,8 +136,8 @@ fun <T> DiagramEditorScaffold(
     fun saveTo(file: File) {
         writeDiagram(file)
             .fold(
-                onSuccess = { messenger.show("Diagramma salvato: ${file.name}") },
-                onFailure = { messenger.show("Errore nel salvataggio: ${it.message}") },
+                onSuccess = { Toasts.success("Diagramma salvato: ${file.name}") },
+                onFailure = { Toasts.error("Errore nel salvataggio", it) },
             )
     }
     fun saveDiagram() {
@@ -155,11 +151,11 @@ fun <T> DiagramEditorScaffold(
         if (!flushAutoSave() || state.isModified) showNewDiagramConfirmDialog = true
         else {
             state.newDiagram()
-            messenger.show("Nuovo diagramma creato")
+            Toasts.success("Nuovo diagramma creato")
         }
     }
     fun requestExport() {
-        if (state.isEmpty) messenger.show("Il diagramma è vuoto: non c'è nulla da esportare")
+        if (state.isEmpty) Toasts.warning("Il diagramma è vuoto: non c'è nulla da esportare")
         else showExportDialog = true
     }
     fun exportTo(file: File) {
@@ -176,14 +172,14 @@ fun <T> DiagramEditorScaffold(
                 Result.failure(e)
             }
         result.fold(
-            onSuccess = { messenger.show("Immagine salvata: ${file.name}") },
-            onFailure = { messenger.show("Errore nell'esportazione: ${it.message}") },
+            onSuccess = { Toasts.success("Immagine salvata: ${file.name}") },
+            onFailure = { Toasts.error("Errore nell'esportazione", it) },
         )
     }
     fun toggleAutoSave() {
         val file = File(state.currentFile ?: return)
         state.isAutoSaveEnabled = !state.isAutoSaveEnabled
-        messenger.show(
+        Toasts.success(
             if (state.isAutoSaveEnabled) "Salvataggio automatico attivato: ${file.name}"
             else "Salvataggio automatico disattivato"
         )
@@ -191,7 +187,7 @@ fun <T> DiagramEditorScaffold(
     fun toggleAutoExport() {
         val file = File(state.imageFile ?: return)
         state.isAutoExportEnabled = !state.isAutoExportEnabled
-        messenger.show(
+        Toasts.success(
             if (state.isAutoExportEnabled) "Esportazione automatica attivata: ${file.name}"
             else "Esportazione automatica disattivata"
         )
@@ -199,17 +195,17 @@ fun <T> DiagramEditorScaffold(
     fun undo() {
         if (state.canUndo()) {
             state.undo()
-            messenger.show("Azione annullata")
+            Toasts.success("Azione annullata")
         }
     }
     fun redo() {
         if (state.canRedo()) {
             state.redo()
-            messenger.show("Azione ripristinata")
+            Toasts.success("Azione ripristinata")
         }
     }
     fun deleteSelected() {
-        state.deleteSelection()?.let { messenger.show(it) }
+        state.deleteSelection()?.let(Toasts::success)
     }
     LaunchedEffect(state) {
         snapshotFlow {
@@ -272,7 +268,6 @@ fun <T> DiagramEditorScaffold(
         }
     }
     Scaffold(
-        snackbarHost = { DiagramSnackbarHost(messenger.hostState) },
         modifier =
             Modifier.focusRequester(focusRequester).focusTarget().onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
@@ -378,7 +373,7 @@ fun <T> DiagramEditorScaffold(
             onConfirm = {
                 showNewDiagramConfirmDialog = false
                 state.newDiagram()
-                messenger.show("Nuovo diagramma creato")
+                Toasts.success("Nuovo diagramma creato")
             },
         )
     }
@@ -404,9 +399,9 @@ fun <T> DiagramEditorScaffold(
                     .fold(
                         onSuccess = {
                             state.loadDiagram(it, file.absolutePath)
-                            messenger.show("Diagramma caricato: ${file.name}")
+                            Toasts.success("Diagramma caricato: ${file.name}")
                         },
-                        onFailure = { messenger.show("Errore nel caricamento: ${it.message}") },
+                        onFailure = { Toasts.error("Errore nel caricamento", it) },
                     )
             },
         )
