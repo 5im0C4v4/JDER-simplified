@@ -65,10 +65,10 @@ private val toastExit = fadeOut(exitSpec()) + shrinkVertically(exitSpec())
 private val toastRise = slideInVertically(enterSpec()) { it }
 private val toastSink = slideOutVertically(exitSpec()) { it }
 
-enum class ToastType(val icon: ImageVector, val duration: Duration?) {
+enum class ToastType(val icon: ImageVector, val duration: Duration) {
     SUCCESS(Icons.Default.CheckCircle, 4.seconds),
-    WARNING(Icons.Default.Warning, 10.seconds),
-    ERROR(Icons.Default.Error, null),
+    WARNING(Icons.Default.Warning, 8.seconds),
+    ERROR(Icons.Default.Error, 12.seconds),
 }
 
 class Toast(val message: String, val type: ToastType)
@@ -180,11 +180,9 @@ private fun ToastType.colors(isDarkTheme: Boolean): ToastColors =
 @Composable
 private fun ToastCard(shown: ShownToast, isDarkTheme: Boolean) {
     val toast = shown.toast
-    toast.type.duration?.let { duration ->
-        LaunchedEffect(shown, shown.timerRestarts) {
-            delay(duration)
-            shown.dismiss()
-        }
+    LaunchedEffect(shown, shown.timerRestarts) {
+        delay(toast.type.duration)
+        shown.dismiss()
     }
     val colors = toast.type.colors(isDarkTheme)
     AnimatedVisibility(visibleState = shown.visibility, enter = toastEnter, exit = toastExit) {
@@ -193,15 +191,11 @@ private fun ToastCard(shown: ShownToast, isDarkTheme: Boolean) {
                 Modifier.padding(top = 8.dp)
                     .animateEnterExit(enter = toastRise, exit = toastSink)
                     .semantics { liveRegion = LiveRegionMode.Polite },
-            dismissAction =
-                if (toast.type == ToastType.SUCCESS) null
-                else {
-                    {
-                        IconButton(onClick = shown::dismiss) {
-                            Icon(Icons.Default.Close, contentDescription = UiStrings.CLOSE)
-                        }
-                    }
-                },
+            dismissAction = {
+                IconButton(onClick = shown::dismiss) {
+                    Icon(Icons.Default.Close, contentDescription = UiStrings.CLOSE)
+                }
+            },
             shape = MaterialTheme.shapes.medium,
             containerColor = colors.container,
             contentColor = colors.content,

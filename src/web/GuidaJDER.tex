@@ -131,6 +131,8 @@
 
     
     % ===================== COPERTINA =============================
+% Copertina senza ancora: titlepage riparte da pagina 1 e page.1 sarebbe doppia
+\hypersetup{pageanchor=false}
 \begin{titlepage}
   \pagecolor{coverbgA}
   \color{white}
@@ -185,6 +187,7 @@
   {\small\color{white!70!coverbgA} Basato su Kotlin \& Jetpack Compose Multiplatform \quad\textbullet\quad Licenza MIT}\\[0.3cm]
   {\small\color{jderorange} \url{https://jder.it}}
 \end{titlepage}
+\hypersetup{pageanchor=true}
 \nopagecolor
 
 % ===================== INDICE ================================
@@ -236,10 +239,13 @@ dedicata nell'interfaccia principale:
 
 \subsection{Avvio dell'applicazione}
 
-Scaricare il file \texttt{JDER.jar} dalla pagina delle release su GitHub
-(\url{https://github.com/LoryPelli/JDER/releases/latest}) oppure dal sito ufficiale
-(\url{https://jder.it}).
+Scaricare il file \texttt{JDER.jar} da una di queste pagine:
+\begin{itemize}
+  \item Ultima release su GitHub: \url{https://github.com/LoryPelli/JDER/releases/latest}
+  \item Sito ufficiale: \url{https://jder.it}
+\end{itemize}
 
+\Needspace{4\baselineskip}
 Per avviare l'applicazione:
 \begin{enumerate}
   \item Doppio clic sul file \texttt{JDER.jar} (se Java è associato all'estensione \texttt{.jar}).
@@ -448,17 +454,17 @@ colore ne indica il tipo:
 
 \begin{itemize}
   \item \textbf{verde} (segno di spunta) --- conferma che un'operazione è riuscita, per esempio un
-        salvataggio; scompare da solo dopo qualche secondo;
+        salvataggio; scompare da solo dopo quattro secondi;
   \item \textbf{giallo} (triangolo) --- avviso, per esempio un'opzione da riga di comando non
-        valida; scompare dopo una decina di secondi;
+        valida; scompare dopo otto secondi;
   \item \textbf{rosso} (cerchio con punto esclamativo) --- errore, per esempio un file che non si
-        può salvare; resta visibile finché non lo si chiude.
+        può salvare; scompare dopo dodici secondi.
 \end{itemize}
 
-Avvisi ed errori si chiudono con il pulsante \textbf{X} e, se \jder{} è stato avviato da
-terminale, vengono scritti anche lì. Più messaggi si impilano uno sopra l'altro: un nuovo
-messaggio verde sostituisce quello verde precedente, mentre avvisi ed errori restano finché non
-scadono o non vengono chiusi.
+Ogni messaggio si può chiudere prima del tempo con il pulsante \textbf{X}; avvisi ed errori, se
+\jder{} è stato avviato da terminale, vengono scritti anche lì. Più messaggi si impilano uno sopra
+l'altro: un nuovo messaggio verde sostituisce quello verde precedente, mentre avvisi ed errori
+restano finché non scadono o non vengono chiusi.
 
 % =============================================================
 \Needspace{14cm}
@@ -778,7 +784,7 @@ tabella come colonna normale.
     \item Un attributo multivalore diventa una tabella separata; un attributo composto si divide
           in più colonne.
   \end{itemize}
-  L'esempio \texttt{universita-logico.json} è la traduzione, secondo queste regole, del
+  Il file di esempio \texttt{universita-logico.json} è la traduzione, secondo queste regole, del
   diagramma E/R \texttt{universita.json}.
 \end{tcolorbox}
 
@@ -1562,12 +1568,12 @@ UUID univoco generato automaticamente.
 
 \subsection*{Autori e ringraziamenti}
 \begin{itemize}
-  \item \textbf{Versione attuale (Kotlin / Compose):} LoryPelli
-        (\url{https://github.com/LoryPelli/JDER})
-  \item \textbf{Versione precedente Java:} Gianvito Pio
-        (\url{https://gianvitopio.wordpress.com/jder})
-  \item \textbf{Versione originale:} Alessandro Ballini
-        (\url{https://ballini.it/Software/ProgER})
+  \item \textbf{Versione attuale (Kotlin / Compose):} LoryPelli\\
+        \url{https://github.com/LoryPelli/JDER}
+  \item \textbf{Versione precedente Java:} Gianvito Pio\\
+        \url{https://gianvitopio.wordpress.com/jder}
+  \item \textbf{Versione originale:} Alessandro Ballini\\
+        \url{https://ballini.it/Software/ProgER}
 \end{itemize}
 
 \subsection*{Tecnologie utilizzate}

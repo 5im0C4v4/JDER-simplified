@@ -107,7 +107,7 @@ JDER è una riscrittura completa in **Kotlin** e **Jetpack Compose** del softwar
 - **Barra dei menu** — File, Modifica, Vista, Strumenti, Elemento e Aiuto con le scorciatoie, gli strumenti del diagramma attivo, le azioni sull'elemento selezionato, il tema, le palette e il riquadro «Informazioni su JDER»: su macOS è la barra di sistema (con anche il menu Finestra), su Windows e Linux sta in cima alla finestra e segue il tema dell'app
 - **Menu del Dock** (macOS) — clic destro sull'icona di JDER nel Dock per creare subito un nuovo diagramma E/R, schema logico o diagramma delle classi, dei casi d'uso, di sequenza o logico
 - **Suggerimenti** sui pulsanti della barra degli strumenti e scala corretta sugli schermi ad alta densità (Retina/HiDPI)
-- **Messaggi colorati** in basso nella finestra: verdi per le conferme, gialli per gli avvisi e rossi per gli errori; avvisi ed errori si chiudono con ✕, gli errori restano visibili finché non li si chiude e, avviando JDER da terminale, entrambi vengono scritti anche lì
+- **Messaggi colorati** in basso nella finestra: verdi per le conferme, gialli per gli avvisi e rossi per gli errori; si chiudono da soli (rispettivamente dopo 4, 8 e 12 secondi) o con ✕ e, avviando JDER da terminale, avvisi ed errori vengono scritti anche lì
 
 ---
 
