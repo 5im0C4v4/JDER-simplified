@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.jder.data.AppPreferences
 import com.jder.data.ERDiagramRepository
 import com.jder.domain.model.Attribute
 import com.jder.domain.model.Connection
@@ -38,6 +39,7 @@ import com.jder.ui.dialogs.RelationshipPropertiesDialog
 import com.jder.ui.strings.UiStrings
 import com.jder.ui.theme.ThemeState
 import com.jder.ui.utils.renderERDiagramToBitmap
+import java.util.prefs.BackingStoreException
 
 @Composable
 fun ERDiagramScreen(
@@ -65,6 +67,22 @@ fun ERDiagramScreen(
             state.convertToAssociativeEntity(it)
             Toasts.success("Relazione convertita in entità associativa")
         }
+    }
+    fun toggleSnapToGrid() {
+        val enabled = !state.isSnapToGridEnabled
+        try {
+            AppPreferences.setSnapToGridEnabled(enabled)
+        } catch (e: BackingStoreException) {
+            Toasts.error("Errore nel salvataggio delle preferenze", e)
+            return
+        } catch (e: SecurityException) {
+            Toasts.error("Errore nell'accesso alle preferenze", e)
+            return
+        }
+        state.isSnapToGridEnabled = enabled
+        Toasts.success(
+            if (enabled) "Snap alla griglia attivato" else "Snap alla griglia disattivato"
+        )
     }
     fun selectedType(): ERContextMenuType? =
         when {
@@ -157,6 +175,7 @@ fun ERDiagramScreen(
                     state.toolMode = ERToolMode.NOTE
                 },
             ),
+        onToggleSnapToGrid = ::toggleSnapToGrid,
         selectionMenu = {
             selectedType()?.let { DiagramSelectionMenu(actionsTitle(it), actions(it)) }
         },

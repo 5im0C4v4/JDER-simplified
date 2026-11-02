@@ -28,7 +28,7 @@ import com.jder.domain.model.Note
 import kotlin.math.floor
 
 private const val TEXT_MEASURER_CACHE_SIZE = 256
-private const val GRID_SPACING = 20f
+internal const val GRID_SPACING = 20f
 private const val MIN_GRID_SPACING_PX = 12f
 
 @Composable

@@ -9,7 +9,7 @@ data class Entity(
     val x: Float,
     val y: Float,
     val width: Float = 140f,
-    val height: Float = 70f,
+    val height: Float = 80f,
     val attributes: List<Attribute> = emptyList(),
     val documentation: String = "",
     val isWeak: Boolean = false,

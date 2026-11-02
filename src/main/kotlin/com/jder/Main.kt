@@ -23,6 +23,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import com.jder.data.AppPreferences
 import com.jder.data.ERDiagramRepository
 import com.jder.domain.model.ERDiagramState
 import com.jder.ui.components.AppMenuBar
@@ -49,7 +50,7 @@ fun main(args: Array<String>) {
         return
     }
     options.warnings.forEach(Toasts::warning)
-    val erState = ERDiagramState()
+    val erState = ERDiagramState(AppPreferences.isSnapToGridEnabled())
     val erRepository = ERDiagramRepository()
     prepareStartupDiagram(options) { startupOptions ->
         openStartupDiagram(erState, erRepository, startupOptions)

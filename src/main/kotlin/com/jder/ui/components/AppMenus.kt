@@ -26,6 +26,7 @@ class DiagramMenuCommands(
     val onSaveDiagram: () -> Unit,
     val onSaveAsDiagram: () -> Unit,
     val onToggleAutoSave: () -> Unit,
+    val onToggleSnapToGrid: () -> Unit,
     val onExportPNG: () -> Unit,
     val onToggleAutoExport: () -> Unit,
     val onUndo: () -> Unit,
@@ -260,6 +261,11 @@ private fun toolEntries(commands: DiagramMenuCommands): List<AppMenuEntry> {
             isSelected = state.isSelectTool,
             shortcut = MenuShortcut(Key.Escape, "Esc"),
             onSelect = state::resetToolMode,
+        ),
+        AppMenuEntry.Toggle(
+            "Snap alla Griglia",
+            isChecked = state.isSnapToGridEnabled,
+            onToggle = commands.onToggleSnapToGrid,
         ),
         AppMenuEntry.Separator,
     ) + commands.tools().map { it.toMenuEntry() }

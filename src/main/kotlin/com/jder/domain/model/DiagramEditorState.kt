@@ -11,7 +11,10 @@ const val MIN_ZOOM = 0.25f
 const val MAX_ZOOM = 3f
 private const val ZOOM_STEP = 1.2f
 
-abstract class DiagramEditorState<T>(private val createEmptyDiagram: () -> T) {
+abstract class DiagramEditorState<T>(
+    private val createEmptyDiagram: () -> T,
+    initialSnapToGridEnabled: Boolean = false,
+) {
     private val diagramState = mutableStateOf(createEmptyDiagram())
     var diagram: T
         get() = diagramState.value
@@ -28,6 +31,7 @@ abstract class DiagramEditorState<T>(private val createEmptyDiagram: () -> T) {
     var imageFile by mutableStateOf<String?>(null)
     var isAutoSaveEnabled by mutableStateOf(false)
     var isAutoExportEnabled by mutableStateOf(false)
+    var isSnapToGridEnabled by mutableStateOf(initialSnapToGridEnabled)
     @Volatile var exportedImageKey: Any? = null
 
     var zoom by mutableStateOf(1.0f)

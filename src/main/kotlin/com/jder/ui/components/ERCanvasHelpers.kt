@@ -7,6 +7,7 @@ import com.jder.domain.model.ERDiagramState
 import com.jder.domain.model.ERToolMode
 import com.jder.domain.model.Entity
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 private const val ATTRIBUTE_HIT_RADIUS = 24f
 
@@ -152,7 +153,7 @@ internal fun handleERTap(state: ERDiagramState, offset: Offset) {
             hitTestERDiagram(state.diagram, offset)?.let { selectERElement(state, it) }
                 ?: state.clearSelection()
         ERToolMode.ENTITY -> {
-            state.addEntity(offset.x - 70f, offset.y - 35f, "Nuova Entità")
+            state.addEntity(offset.x - 70f, offset.y - 40f, "Nuova Entità")
             state.toolMode = ERToolMode.SELECT
         }
         ERToolMode.RELATIONSHIP -> {
@@ -221,6 +222,118 @@ internal fun handleERDrag(state: ERDiagramState, element: ERElement, delta: Offs
             }
     }
 }
+
+internal fun handleERSnappedDrag(
+    state: ERDiagramState,
+    element: ERElement,
+    totalDelta: Offset,
+    dragStartDiagram: ERDiagram,
+) {
+    when (element) {
+        is ERElement.EntityRef -> {
+            val initial = dragStartDiagram.entities.firstOrNull { it.id == element.id } ?: return
+            state.updateEntityWithoutSave(element.id) {
+                it.copy(
+                    x = snapToGrid(initial.x + totalDelta.x),
+                    y = snapToGrid(initial.y + totalDelta.y),
+                )
+            }
+        }
+        is ERElement.RelationshipRef -> {
+            val initial =
+                dragStartDiagram.relationships.firstOrNull { it.id == element.id } ?: return
+            state.updateRelationshipWithoutSave(element.id) {
+                it.copy(
+                    x = snapToGrid(initial.x + totalDelta.x),
+                    y = snapToGrid(initial.y + totalDelta.y),
+                )
+            }
+        }
+        is ERElement.NoteRef -> {
+            val initial = dragStartDiagram.notes.firstOrNull { it.id == element.id } ?: return
+            state.updateNoteWithoutSave(element.id) {
+                it.copy(
+                    x = snapToGrid(initial.x + totalDelta.x),
+                    y = snapToGrid(initial.y + totalDelta.y),
+                )
+            }
+        }
+        is ERElement.AttributeRef ->
+            if (element.isEntityAttribute) {
+                val initial =
+                    dragStartDiagram.entities.firstOrNull { it.id == element.id } ?: return
+                state.updateEntityWithoutSave(element.id) { entity ->
+                    entity.copy(
+                        attributes =
+                            moveAttributeToGrid(
+                                initial.attributes,
+                                initial.x,
+                                initial.y,
+                                initial.width,
+                                initial.height,
+                                element.attributeId,
+                                totalDelta,
+                            )
+                    )
+                }
+            } else {
+                val initial =
+                    dragStartDiagram.relationships.firstOrNull { it.id == element.id } ?: return
+                state.updateRelationshipWithoutSave(element.id) { relationship ->
+                    relationship.copy(
+                        attributes =
+                            moveAttributeToGrid(
+                                initial.attributes,
+                                initial.x,
+                                initial.y,
+                                initial.width,
+                                initial.height,
+                                element.attributeId,
+                                totalDelta,
+                            )
+                    )
+                }
+            }
+    }
+}
+
+private fun moveAttributeToGrid(
+    attributes: List<Attribute>,
+    ownerX: Float,
+    ownerY: Float,
+    ownerWidth: Float,
+    ownerHeight: Float,
+    attributeId: String,
+    totalDelta: Offset,
+): List<Attribute> {
+    val index = attributes.indexOfFirst { it.id == attributeId }
+    if (index < 0) return attributes
+    val initialPosition =
+        calculateAttributePosition(
+            ownerX,
+            ownerY,
+            ownerWidth,
+            ownerHeight,
+            index,
+            attributes.size,
+            attributes[index],
+        )
+    val center = Offset(ownerX + ownerWidth / 2f, ownerY + ownerHeight / 2f)
+    val snappedPosition =
+        Offset(
+            snapToGrid(initialPosition.x + totalDelta.x),
+            snapToGrid(initialPosition.y + totalDelta.y),
+        )
+    return attributes.map {
+        if (it.id == attributeId) {
+            it.copy(x = snappedPosition.x - center.x, y = snappedPosition.y - center.y)
+        } else {
+            it
+        }
+    }
+}
+
+private fun snapToGrid(value: Float): Float = (value / GRID_SPACING).roundToInt() * GRID_SPACING
 
 private fun orbitAttribute(
     attributes: List<Attribute>,

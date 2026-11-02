@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import com.jder.domain.model.ERDiagram
 import com.jder.domain.model.ERDiagramState
 
 @Composable
@@ -31,6 +32,8 @@ fun ERDiagramCanvas(
         remember(state) {
             object : DiagramPointerHandler {
                 var dragged: ERElement? = null
+                var dragStartDiagram: ERDiagram? = null
+                var totalDragDelta = Offset.Zero
 
                 override fun onTap(position: Offset) = handleERTap(state, position)
 
@@ -50,15 +53,30 @@ fun ERDiagramCanvas(
 
                 override fun onDragStart(position: Offset): Boolean {
                     dragged = handleERDragStart(state, position)
+                    dragStartDiagram = state.diagram
+                    totalDragDelta = Offset.Zero
                     return dragged != null
                 }
 
                 override fun onDrag(position: Offset, delta: Offset) {
-                    dragged?.let { handleERDrag(state, it, delta) }
+                    dragged?.let { element ->
+                        totalDragDelta += delta
+                        if (state.isSnapToGridEnabled) {
+                            handleERSnappedDrag(
+                                state,
+                                element,
+                                totalDragDelta,
+                                dragStartDiagram ?: state.diagram,
+                            )
+                        } else {
+                            handleERDrag(state, element, delta)
+                        }
+                    }
                 }
 
                 override fun onDragEnd(position: Offset) {
                     dragged = null
+                    dragStartDiagram = null
                     state.commitDragState()
                 }
 

@@ -5,7 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import java.util.UUID
 
-class ERDiagramState : DiagramEditorState<ERDiagram>({ ERDiagram(name = "Nuovo Diagramma E-R") }) {
+class ERDiagramState(initialSnapToGridEnabled: Boolean = false) :
+    DiagramEditorState<ERDiagram>(
+        { ERDiagram(name = "Nuovo Diagramma E-R") },
+        initialSnapToGridEnabled,
+    ) {
     var selectedEntityId by mutableStateOf<String?>(null)
         private set
 
@@ -289,7 +293,7 @@ class ERDiagramState : DiagramEditorState<ERDiagram>({ ERDiagram(name = "Nuovo D
                 id = UUID.randomUUID().toString(),
                 name = relationship.name,
                 x = centerX - 70f,
-                y = centerY - 35f,
+                y = centerY - 40f,
                 attributes = relationship.attributes,
                 documentation = relationship.documentation,
             )
