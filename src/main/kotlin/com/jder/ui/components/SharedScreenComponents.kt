@@ -10,54 +10,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.jder.ui.strings.UiStrings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 class PendingRelation(val sourceId: String, val targetId: String)
-
-@Stable
-class SnackbarMessenger(val hostState: SnackbarHostState, private val scope: CoroutineScope) {
-    fun show(message: String) {
-        scope.launch {
-            hostState.currentSnackbarData?.dismiss()
-            hostState.showSnackbar(message)
-        }
-    }
-}
-
-@Composable
-fun rememberSnackbarMessenger(): SnackbarMessenger {
-    val hostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    return remember(hostState, scope) { SnackbarMessenger(hostState, scope) }
-}
-
-@Composable
-fun DiagramSnackbarHost(hostState: SnackbarHostState) {
-    SnackbarHost(hostState) {
-        Snackbar(
-            snackbarData = it,
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            actionColor = MaterialTheme.colorScheme.primary,
-        )
-    }
-}
 
 @Composable
 fun <T> RadioOptionList(

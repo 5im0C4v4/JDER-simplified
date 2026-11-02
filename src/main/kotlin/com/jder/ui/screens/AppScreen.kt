@@ -1,9 +1,11 @@
 package com.jder.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.jder.data.ClassDiagramRepository
@@ -20,8 +22,8 @@ import com.jder.domain.model.RelationalDiagramState
 import com.jder.domain.model.SequenceDiagramState
 import com.jder.domain.model.UseCaseDiagramState
 import com.jder.ui.components.DiagramTabRow
+import com.jder.ui.dialogs.DiagramTypeDialog
 import com.jder.ui.theme.ThemeState
-import java.io.File
 
 @Composable
 fun AppScreen(
@@ -38,10 +40,14 @@ fun AppScreen(
     classRepository: ClassDiagramRepository,
     logicRepository: LogicDiagramRepository,
     themeState: ThemeState,
-    currentType: DiagramType,
+    currentType: DiagramType?,
     onTypeChange: (DiagramType) -> Unit,
-    erPreviewFile: File? = null,
 ) {
+    if (currentType == null) {
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+        DiagramTypeDialog(themeState = themeState, onTypeSelected = onTypeChange)
+        return
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         DiagramTabRow(
             currentType = currentType,
@@ -65,7 +71,6 @@ fun AppScreen(
                         state = erState,
                         repository = erRepository,
                         themeState = themeState,
-                        previewFile = erPreviewFile,
                     )
                 DiagramType.RELATIONAL ->
                     RelationalDiagramScreen(

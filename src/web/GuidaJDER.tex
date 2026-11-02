@@ -131,6 +131,8 @@
 
     
     % ===================== COPERTINA =============================
+% Copertina senza ancora: titlepage riparte da pagina 1 e page.1 sarebbe doppia
+\hypersetup{pageanchor=false}
 \begin{titlepage}
   \pagecolor{coverbgA}
   \color{white}
@@ -185,6 +187,7 @@
   {\small\color{white!70!coverbgA} Basato su Kotlin \& Jetpack Compose Multiplatform \quad\textbullet\quad Licenza MIT}\\[0.3cm]
   {\small\color{jderorange} \url{https://jder.it}}
 \end{titlepage}
+\hypersetup{pageanchor=true}
 \nopagecolor
 
 % ===================== INDICE ================================
@@ -236,10 +239,13 @@ dedicata nell'interfaccia principale:
 
 \subsection{Avvio dell'applicazione}
 
-Scaricare il file \texttt{JDER.jar} dalla pagina delle release su GitHub
-(\url{https://github.com/LoryPelli/JDER/releases/latest}) oppure dal sito ufficiale
-(\url{https://jder.it}).
+Scaricare il file \texttt{JDER.jar} da una di queste pagine:
+\begin{itemize}
+  \item Ultima release su GitHub: \url{https://github.com/LoryPelli/JDER/releases/latest}
+  \item Sito ufficiale: \url{https://jder.it}
+\end{itemize}
 
+\Needspace{4\baselineskip}
 Per avviare l'applicazione:
 \begin{enumerate}
   \item Doppio clic sul file \texttt{JDER.jar} (se Java è associato all'estensione \texttt{.jar}).
@@ -251,15 +257,60 @@ Per avviare l'applicazione:
   e che la variabile di ambiente \texttt{JAVA\_HOME} sia configurata correttamente.
 \end{tcolorbox}
 
+Se non si indica un file da aprire, oppure se il file indicato non esiste, non se ne riconosce il
+tipo o non si può aprire (vedi sezione~\ref{sec:cli}), \jder{} si apre mostrando la finestra
+\uielement{Scegli il tipo di diagramma}, con un'anteprima di ogni tipo nella versione chiara o
+scura secondo il tema attivo (tema e palette si possono cambiare anche da qui). Facendo clic su
+un'anteprima, oppure con \key{Ctrl} + \key{1} \ldots{} \key{Ctrl} + \key{6}, si apre la scheda
+del tipo scelto; gli altri tipi restano raggiungibili dalla barra delle schede.
+
 All'avvio \jder{} controlla l'ultima versione pubblicata su GitHub: se il \texttt{JDER.jar}
 pubblicato è diverso da quello in uso, la finestra \uielement{Aggiornamento disponibile} propone
 di scaricarlo (\uielement{Scarica}) oppure di rimandare (\uielement{Più tardi}).
+
+\subsubsection{Opzioni da riga di comando}
+\label{sec:cli}
+
+Avviando \jder{} da terminale si possono aggiungere alcune opzioni:
+
+\begin{itemize}
+  \item \texttt{-{}-json <file>} --- apre il diagramma salvato nel file JSON indicato, direttamente
+        nella scheda del suo tipo.
+  \item \texttt{-{}-png <file>} --- esporta il diagramma nell'immagine PNG indicata e la aggiorna
+        automaticamente a ogni modifica.
+  \item \texttt{-h}, \texttt{-{}-help} --- mostra l'elenco delle opzioni ed esce.
+\end{itemize}
+
+Se manca, al nome del file viene aggiunta l'estensione (\texttt{.json} o \texttt{.png}), quindi
+\texttt{-{}-json diagramma} apre \texttt{diagramma.json}.
+
+Per esempio, per modificare un diagramma tenendo sempre aggiornata la sua immagine:
+
+\begin{center}
+  \texttt{java -jar JDER.jar -{}-json diagramma.json -{}-png diagramma.png}
+\end{center}
+
+Con \texttt{-{}-png} l'esportazione automatica (vedi sezione~\ref{sec:autoexport}) parte già
+attiva e si può disattivare dal menu \menu{File}. Un file JSON esistente invece non viene salvato
+da solo: si salva come al solito oppure attivando il salvataggio automatico.
+
+Se il file JSON non esiste ancora, o non si riconosce che tipo di diagramma contiene, \jder{}
+mostra all'avvio la finestra \uielement{Scegli il tipo di diagramma} e apre il file nella scheda
+scelta; un file che non esiste viene creato alla prima modifica, con il salvataggio automatico già
+attivo. Anche \texttt{-{}-png} si può usare da solo: in questo caso si sceglie il tipo all'avvio e
+l'immagine segue il nuovo diagramma.
+
+Se un'opzione non è valida, \jder{} la ignora e lo segnala all'apertura con un avviso (vedi
+sezione~\ref{sec:messaggi}). Se invece il file JSON esiste ma non si può aprire, l'avviso ne indica
+il motivo e \jder{} parte dalla scelta del tipo di diagramma senza usare né il file né l'immagine
+indicata con \texttt{-{}-png}, così da non sovrascriverli.
 
 % =============================================================
 \section{Interfaccia Principale}
 \label{sec:interfaccia}
 
-All'avvio, \jder{} mostra una finestra massimizzata con i seguenti componenti principali:
+Scelto il tipo di diagramma, \jder{} mostra una finestra massimizzata con i seguenti componenti
+principali:
 
 \begin{enumerate}
   \item \textbf{Barra dei menu} --- su macOS è la barra dei menu del sistema, su Windows e Linux si
@@ -302,8 +353,8 @@ segnate con un pallino (\textbullet) accanto al nome.
 La barra dei menu contiene i comandi di tutta l'applicazione, con le relative scorciatoie:
 
 \begin{itemize}
-  \item \menu{File} --- Nuovo Diagramma, Apri Diagramma, Salva, Salva con nome, Esporta come PNG
-        (e Esci su Windows e Linux).
+  \item \menu{File} --- Nuovo Diagramma, Apri Diagramma, Salva, Salva con nome, Salvataggio
+        Automatico, Esporta come PNG, Esportazione Automatica (e Esci su Windows e Linux).
   \item \menu{Modifica} --- Annulla, Ripristina, Elimina Elemento Selezionato.
   \item \menu{Vista} --- zoom, scelta del tipo di diagramma, Tema Scuro, Palette Colori (e Schermo
         Intero su Windows e Linux).
@@ -325,8 +376,9 @@ La barra degli strumenti principale contiene, da sinistra a destra:
   \item \textbf{Titolo} --- mostra il nome del file aperto e un asterisco (\texttt{*}) se ci sono
         modifiche non salvate.
   \item Solo su macOS, i pulsanti \uielement{File} (nuovo, apri, salva, salva con nome,
-        esporta, elimina), \uielement{Vista} (Zoom In, Zoom Out, Reimposta Zoom) ed
-        \uielement{Esporta} (esportazione come immagine PNG).
+        salvataggio automatico, esporta, esportazione automatica, elimina), \uielement{Vista}
+        (Zoom In, Zoom Out, Reimposta Zoom) ed \uielement{Esporta} (esportazione come immagine
+        PNG ed esportazione automatica).
   \item \textbf{Selettore palette} --- un cerchio colorato che apre un selettore per scegliere
         tra le 20 palette di colori Material disponibili.
   \item \textbf{Interruttore tema} --- alterna tra modalità chiara e modalità scura.
@@ -393,6 +445,26 @@ un elemento. Mostra le informazioni dell'elemento selezionato e permette di:
 
 Il pannello si chiude tramite il pulsante \textbf{X} in alto a destra o deselezionando
 l'elemento.
+
+\subsection{Messaggi}
+\label{sec:messaggi}
+
+L'esito delle operazioni compare in basso al centro della finestra con un breve messaggio, il cui
+colore ne indica il tipo:
+
+\begin{itemize}
+  \item \textbf{verde} (segno di spunta) --- conferma che un'operazione è riuscita, per esempio un
+        salvataggio; scompare da solo dopo quattro secondi;
+  \item \textbf{giallo} (triangolo) --- avviso, per esempio un'opzione da riga di comando non
+        valida; scompare dopo otto secondi;
+  \item \textbf{rosso} (cerchio con punto esclamativo) --- errore, per esempio un file che non si
+        può salvare; scompare dopo dodici secondi.
+\end{itemize}
+
+Ogni messaggio si può chiudere prima del tempo con il pulsante \textbf{X}; avvisi ed errori, se
+\jder{} è stato avviato da terminale, vengono scritti anche lì. Più messaggi si impilano uno sopra
+l'altro: un nuovo messaggio verde sostituisce quello verde precedente, mentre avvisi ed errori
+restano finché non scadono o non vengono chiusi.
 
 % =============================================================
 \Needspace{14cm}
@@ -712,7 +784,7 @@ tabella come colonna normale.
     \item Un attributo multivalore diventa una tabella separata; un attributo composto si divide
           in più colonne.
   \end{itemize}
-  L'esempio \texttt{universita-logico.json} è la traduzione, secondo queste regole, del
+  Il file di esempio \texttt{universita-logico.json} è la traduzione, secondo queste regole, del
   diagramma E/R \texttt{universita.json}.
 \end{tcolorbox}
 
@@ -1244,6 +1316,17 @@ indipendentemente dal tipo di diagramma.
   per indicare la presenza di modifiche non salvate.
 \end{tcolorbox}
 
+\subsubsection{Salvataggio automatico}
+
+Dopo aver salvato il diagramma almeno una volta si può attivare \menu{File} $\to$
+\menu{Salvataggio Automatico}: da quel momento ogni modifica viene salvata da sola nello stesso
+file, mezzo secondo dopo averla fatta (durante un trascinamento si aspetta che l'elemento sia
+fermo), e l'asterisco nel titolo scompare. La voce resta disattivata finché il diagramma non ha
+un file; si spegne creando un nuovo diagramma o aprendone un altro, mentre con \menu{Salva con
+nome\ldots} continua sul nuovo file. Le modifiche ancora in attesa vengono salvate anche prima di
+creare o aprire un diagramma, cambiando scheda e chiudendo \jder{}, che quindi non chiede
+conferma per quelle modifiche.
+
 \subsection{Il Gestore File}
 \label{sec:filemanager}
 
@@ -1282,6 +1365,22 @@ vuoto non può essere esportato.
   Per ottenere un'immagine di dimensioni adeguate, assicurarsi che tutti gli elementi del
   diagramma siano posizionati in modo ordinato prima di esportare.
 \end{tcolorbox}
+
+\subsubsection{Esportazione automatica}
+\label{sec:autoexport}
+
+Dopo la prima esportazione si può attivare \menu{File} $\to$ \menu{Esportazione Automatica} (su
+macOS anche dal pulsante \uielement{Esporta}): da quel momento l'immagine viene riesportata nello
+stesso file PNG a ogni modifica del diagramma, e anche cambiando la palette di colori, così resta
+sempre allineata, per esempio in un documento o in una presentazione che la include. Il file viene
+sostituito solo quando la nuova immagine è completa, quindi chi lo sta leggendo non ne vede mai
+una a metà. A differenza dell'esportazione manuale, se il diagramma viene svuotato anche
+l'immagine diventa vuota.
+
+La voce resta disattivata finché il diagramma non è stato esportato; si spegne creando un nuovo
+diagramma o aprendone un altro, e un'esportazione manuale in un altro file sposta l'esportazione
+automatica sul nuovo file. Si può attivare già all'avvio con l'opzione \texttt{-{}-png} (vedi
+sezione~\ref{sec:cli}).
 
 \subsection{Annulla e Ripristina}
 
@@ -1469,12 +1568,12 @@ UUID univoco generato automaticamente.
 
 \subsection*{Autori e ringraziamenti}
 \begin{itemize}
-  \item \textbf{Versione attuale (Kotlin / Compose):} LoryPelli
-        (\url{https://github.com/LoryPelli/JDER})
-  \item \textbf{Versione precedente Java:} Gianvito Pio
-        (\url{https://gianvitopio.wordpress.com/jder})
-  \item \textbf{Versione originale:} Alessandro Ballini
-        (\url{https://ballini.it/Software/ProgER})
+  \item \textbf{Versione attuale (Kotlin / Compose):} LoryPelli\\
+        \url{https://github.com/LoryPelli/JDER}
+  \item \textbf{Versione precedente Java:} Gianvito Pio\\
+        \url{https://gianvitopio.wordpress.com/jder}
+  \item \textbf{Versione originale:} Alessandro Ballini\\
+        \url{https://ballini.it/Software/ProgER}
 \end{itemize}
 
 \subsection*{Tecnologie utilizzate}

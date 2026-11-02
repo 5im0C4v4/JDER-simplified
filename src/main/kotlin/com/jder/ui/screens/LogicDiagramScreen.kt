@@ -38,7 +38,7 @@ import com.jder.ui.components.LogicContextMenuType
 import com.jder.ui.components.LogicDiagramCanvas
 import com.jder.ui.components.LogicElement
 import com.jder.ui.components.LogicPropertiesPanel
-import com.jder.ui.components.rememberSnackbarMessenger
+import com.jder.ui.components.Toasts
 import com.jder.ui.dialogs.LogicComponentDialog
 import com.jder.ui.dialogs.NotePropertiesDialog
 import com.jder.ui.dialogs.TruthTableDialog
@@ -52,7 +52,6 @@ fun LogicDiagramScreen(
     repository: LogicDiagramRepository,
     themeState: ThemeState,
 ) {
-    val messenger = rememberSnackbarMessenger()
     var showComponentDialog by remember { mutableStateOf(false) }
     var showNoteDialog by remember { mutableStateOf(false) }
     var showTruthTable by remember { mutableStateOf(false) }
@@ -123,7 +122,7 @@ fun LogicDiagramScreen(
             }
             add(
                 ContextMenuItem("Elimina", Icons.Default.Delete, isDestructive = true) {
-                    state.deleteSelection()?.let(messenger::show)
+                    state.deleteSelection()?.let(Toasts::success)
                 }
             )
         }
@@ -132,7 +131,6 @@ fun LogicDiagramScreen(
         state = state,
         repository = repository,
         themeState = themeState,
-        messenger = messenger,
         renderImage = {
             renderLogicDiagramToBitmap(state.diagram, state.simulation, state.showSimulation, it)
         },
@@ -232,7 +230,6 @@ fun LogicDiagramScreen(
                 if (element is LogicElement.NoteRef) showNoteDialog = true
                 else showComponentDialog = true
             },
-            onMessage = messenger::show,
         )
         if (state.showSimulation && !state.simulation.isStable) {
             Surface(
@@ -267,7 +264,7 @@ fun LogicDiagramScreen(
                         it.copy(label = label, type = type, inputCount = inputCount, value = value)
                     }
                     showComponentDialog = false
-                    messenger.show("Componente modificato")
+                    Toasts.success("Componente modificato")
                 },
             )
         }
@@ -283,7 +280,7 @@ fun LogicDiagramScreen(
                     onConfirm = { newText ->
                         state.updateNote(note.id) { it.copy(text = newText) }
                         showNoteDialog = false
-                        messenger.show("Nota modificata")
+                        Toasts.success("Nota modificata")
                     },
                 )
             }

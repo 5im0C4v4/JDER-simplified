@@ -42,6 +42,7 @@ private fun MenuScope.MenuEntry(entry: AppMenuEntry) {
             CheckboxItem(
                 entry.label,
                 checked = entry.isChecked,
+                enabled = entry.isEnabled,
                 shortcut = entry.shortcut?.keyShortcut,
                 onCheckedChange = { entry.onToggle() },
             )

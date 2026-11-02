@@ -25,6 +25,11 @@ abstract class DiagramEditorState<T>(private val createEmptyDiagram: () -> T) {
     var isModified by mutableStateOf(false)
         private set
 
+    var imageFile by mutableStateOf<String?>(null)
+    var isAutoSaveEnabled by mutableStateOf(false)
+    var isAutoExportEnabled by mutableStateOf(false)
+    @Volatile var exportedImageKey: Any? = null
+
     var zoom by mutableStateOf(1.0f)
     var panOffset by mutableStateOf(Offset.Zero)
     var viewportSize = Size.Zero
@@ -35,6 +40,9 @@ abstract class DiagramEditorState<T>(private val createEmptyDiagram: () -> T) {
     abstract val isEmpty: Boolean
     abstract val hasSelection: Boolean
     abstract val isSelectTool: Boolean
+
+    open val imageKey: Any?
+        get() = diagram
 
     protected abstract fun withName(diagram: T, name: String): T
 
@@ -97,6 +105,10 @@ abstract class DiagramEditorState<T>(private val createEmptyDiagram: () -> T) {
         diagram = newDiagram
         currentFile = filePath
         isModified = false
+        imageFile = null
+        isAutoSaveEnabled = false
+        isAutoExportEnabled = false
+        exportedImageKey = null
         history.clear()
         dragSnapshot = null
         clearSelection()
@@ -111,6 +123,11 @@ abstract class DiagramEditorState<T>(private val createEmptyDiagram: () -> T) {
     fun markAsSaved(filePath: String) {
         currentFile = filePath
         isModified = false
+    }
+
+    fun markAsExported(filePath: String, key: Any?) {
+        imageFile = filePath
+        exportedImageKey = key
     }
 
     fun diagramNamed(name: String): T = withName(diagram, name)

@@ -21,11 +21,11 @@ import com.jder.ui.components.DiagramContextMenu
 import com.jder.ui.components.DiagramSelectionMenu
 import com.jder.ui.components.DiagramTool
 import com.jder.ui.components.PendingRelation
+import com.jder.ui.components.Toasts
 import com.jder.ui.components.UseCaseContextMenuType
 import com.jder.ui.components.UseCaseDiagramCanvas
 import com.jder.ui.components.UseCasePropertiesPanel
 import com.jder.ui.components.contextMenuType
-import com.jder.ui.components.rememberSnackbarMessenger
 import com.jder.ui.dialogs.ActorPropertiesDialog
 import com.jder.ui.dialogs.NotePropertiesDialog
 import com.jder.ui.dialogs.RelationEditDialog
@@ -42,7 +42,6 @@ fun UseCaseDiagramScreen(
     repository: UseCaseDiagramRepository,
     themeState: ThemeState,
 ) {
-    val messenger = rememberSnackbarMessenger()
     var showActorDialog by remember { mutableStateOf(false) }
     var showUseCaseDialog by remember { mutableStateOf(false) }
     var showRelationDialog by remember { mutableStateOf(false) }
@@ -92,14 +91,13 @@ fun UseCaseDiagramScreen(
                 openEditor(type)
             },
             ContextMenuItem("Elimina", Icons.Default.Delete, isDestructive = true) {
-                state.deleteSelection()?.let(messenger::show)
+                state.deleteSelection()?.let(Toasts::success)
             },
         )
     DiagramEditorScaffold(
         state = state,
         repository = repository,
         themeState = themeState,
-        messenger = messenger,
         renderImage = { renderUseCaseDiagramToBitmap(state.diagram, it) },
         emptyHint =
             "Scegli Attore, Caso d'Uso, Sistema o Nota dalla barra degli strumenti e clicca sulla lavagna",
@@ -192,7 +190,7 @@ fun UseCaseDiagramScreen(
                     onConfirm = { newName ->
                         state.updateActor(actor.id) { it.copy(name = newName) }
                         showActorDialog = false
-                        messenger.show("Attore modificato")
+                        Toasts.success("Attore modificato")
                     },
                 )
             }
@@ -211,7 +209,7 @@ fun UseCaseDiagramScreen(
                             it.copy(name = newName, documentation = newDoc)
                         }
                         showUseCaseDialog = false
-                        messenger.show("Caso d'uso modificato")
+                        Toasts.success("Caso d'uso modificato")
                     },
                 )
             }
@@ -226,7 +224,7 @@ fun UseCaseDiagramScreen(
                     onConfirm = { newType ->
                         state.updateRelation(relation.id) { it.copy(type = newType) }
                         showRelationDialog = false
-                        messenger.show("Relazione modificata")
+                        Toasts.success("Relazione modificata")
                     },
                 )
             }
@@ -242,7 +240,7 @@ fun UseCaseDiagramScreen(
                     onConfirm = { newText ->
                         state.updateNote(note.id) { it.copy(text = newText) }
                         showNoteDialog = false
-                        messenger.show("Nota modificata")
+                        Toasts.success("Nota modificata")
                     },
                 )
             }
@@ -262,7 +260,7 @@ fun UseCaseDiagramScreen(
                             it.copy(name = newName, width = newWidth, height = newHeight)
                         }
                         showSystemBoundaryDialog = false
-                        messenger.show("Sistema modificato")
+                        Toasts.success("Sistema modificato")
                     },
                 )
             }
@@ -272,7 +270,7 @@ fun UseCaseDiagramScreen(
             onDismiss = { pendingRelation = null },
             onConfirm = { type ->
                 state.addRelation(relation.sourceId, relation.targetId, type)
-                messenger.show("Relazione creata")
+                Toasts.success("Relazione creata")
                 pendingRelation = null
             },
         )

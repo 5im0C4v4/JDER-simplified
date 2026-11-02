@@ -39,7 +39,9 @@ fun DiagramToolbar(
     onOpenDiagram: () -> Unit,
     onSaveDiagram: () -> Unit,
     onSaveAsDiagram: () -> Unit,
+    onToggleAutoSave: () -> Unit,
     onExportPNG: () -> Unit,
+    onToggleAutoExport: () -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onDeleteSelected: () -> Unit,
@@ -62,7 +64,9 @@ fun DiagramToolbar(
                         onOpenDiagram = onOpenDiagram,
                         onSaveDiagram = onSaveDiagram,
                         onSaveAsDiagram = onSaveAsDiagram,
+                        autoSave = autoSaveToggle(state, onToggleAutoSave),
                         onExportPNG = onExportPNG,
+                        autoExport = autoExportToggle(state, onToggleAutoExport),
                         hasSelection = hasSelection,
                         onDeleteSelected = onDeleteSelected,
                     )
@@ -71,7 +75,10 @@ fun DiagramToolbar(
                         onZoomOut = state::zoomOut,
                         onResetZoom = state::resetView,
                     )
-                    ToolbarExportMenu(onExportPNG = onExportPNG)
+                    ToolbarExportMenu(
+                        onExportPNG = onExportPNG,
+                        autoExport = autoExportToggle(state, onToggleAutoExport),
+                    )
                 }
                 ToolbarPaletteTheme(themeState = themeState)
             },

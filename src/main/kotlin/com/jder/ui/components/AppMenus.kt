@@ -13,6 +13,7 @@ import com.jder.domain.model.DiagramType
 import com.jder.ui.theme.ColorPalettes
 import com.jder.ui.theme.ThemeState
 import com.jder.ui.utils.isMacOS
+import com.jder.ui.utils.openSafely
 
 private const val GUIDE_URL = "https://jder.it/guida.pdf"
 private const val WEBSITE_URL = "https://jder.it/"
@@ -27,10 +28,13 @@ class DiagramMenuCommands(
     val onOpenDiagram: () -> Unit,
     val onSaveDiagram: () -> Unit,
     val onSaveAsDiagram: () -> Unit,
+    val onToggleAutoSave: () -> Unit,
     val onExportPNG: () -> Unit,
+    val onToggleAutoExport: () -> Unit,
     val onUndo: () -> Unit,
     val onRedo: () -> Unit,
     val onDeleteSelected: () -> Unit,
+    val flushAutoSave: () -> Boolean,
     val tools: () -> List<DiagramTool>,
     val selectionMenu: () -> DiagramSelectionMenu?,
 )
@@ -64,6 +68,7 @@ sealed class AppMenuEntry {
         val label: String,
         val isChecked: Boolean,
         val shortcut: MenuShortcut? = null,
+        val isEnabled: Boolean = true,
         val onToggle: () -> Unit,
     ) : AppMenuEntry()
 
@@ -83,7 +88,7 @@ fun appMenus(
     commands: DiagramMenuCommands?,
     themeState: ThemeState,
     windowState: WindowState,
-    currentType: DiagramType,
+    currentType: DiagramType?,
     onTypeChange: (DiagramType) -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
@@ -103,6 +108,22 @@ fun appMenus(
     if (isMacOS) add(AppMenu("Finestra") { windowEntries(windowState) })
     add(AppMenu("Aiuto") { helpEntries(uriHandler, onAbout) })
 }
+
+fun autoSaveToggle(state: DiagramEditorState<*>, onToggle: () -> Unit) =
+    AppMenuEntry.Toggle(
+        "Salvataggio Automatico",
+        isChecked = state.isAutoSaveEnabled,
+        isEnabled = state.currentFile != null,
+        onToggle = onToggle,
+    )
+
+fun autoExportToggle(state: DiagramEditorState<*>, onToggle: () -> Unit) =
+    AppMenuEntry.Toggle(
+        "Esportazione Automatica",
+        isChecked = state.isAutoExportEnabled,
+        isEnabled = state.imageFile != null,
+        onToggle = onToggle,
+    )
 
 fun toggleFullscreen(windowState: WindowState) {
     windowState.placement =
@@ -144,6 +165,7 @@ private fun fileEntries(commands: DiagramMenuCommands, onExit: () -> Unit): List
                 onClick = commands.onSaveAsDiagram,
             )
         )
+        add(autoSaveToggle(commands.state, commands.onToggleAutoSave))
         add(AppMenuEntry.Separator)
         add(
             AppMenuEntry.Action(
@@ -153,6 +175,7 @@ private fun fileEntries(commands: DiagramMenuCommands, onExit: () -> Unit): List
                 onClick = commands.onExportPNG,
             )
         )
+        add(autoExportToggle(commands.state, commands.onToggleAutoExport))
         if (!isMacOS) {
             add(AppMenuEntry.Separator)
             add(
@@ -195,7 +218,7 @@ private fun viewEntries(
     state: DiagramEditorState<*>,
     themeState: ThemeState,
     windowState: WindowState,
-    currentType: DiagramType,
+    currentType: DiagramType?,
     onTypeChange: (DiagramType) -> Unit,
 ): List<AppMenuEntry> = buildList {
     add(AppMenuEntry.Action("Zoom In", commandShortcut(Key.Plus, "+"), onClick = state::zoomIn))
@@ -325,9 +348,3 @@ private fun helpEntries(uriHandler: UriHandler, onAbout: () -> Unit): List<AppMe
             add(AppMenuEntry.Action("Informazioni su JDER", onClick = onAbout))
         }
     }
-
-private fun UriHandler.openSafely(url: String) {
-    try {
-        openUri(url)
-    } catch (_: Exception) {}
-}

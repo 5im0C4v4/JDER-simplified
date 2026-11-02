@@ -30,7 +30,6 @@ fun LogicDiagramCanvas(
     state: LogicDiagramState,
     onContextMenuRequest: (Offset, LogicContextMenuType) -> Unit,
     onEditRequest: (LogicElement) -> Unit,
-    onMessage: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val textMeasurer = rememberDiagramTextMeasurer()
@@ -39,7 +38,6 @@ fun LogicDiagramCanvas(
     var wirePreview by remember { mutableStateOf<LogicWirePreview?>(null) }
     val currentOnContextMenuRequest by rememberUpdatedState(onContextMenuRequest)
     val currentOnEditRequest by rememberUpdatedState(onEditRequest)
-    val currentOnMessage by rememberUpdatedState(onMessage)
     val handler =
         remember(state) {
             object : DiagramPointerHandler {
@@ -49,8 +47,7 @@ fun LogicDiagramCanvas(
                 var movedNoteId: String? = null
                 var wireSource: LogicEndpoint? = null
 
-                override fun onTap(position: Offset) =
-                    handleLogicTap(state, position, currentOnMessage)
+                override fun onTap(position: Offset) = handleLogicTap(state, position)
 
                 override fun onDoubleTap(position: Offset): Boolean {
                     if (!state.isSelectTool) return false
@@ -143,7 +140,7 @@ fun LogicDiagramCanvas(
                             wirePreview?.target?.let { LogicEndpoint(it.id, it.pin) }
                                 ?: hitTestLogicDiagram(state.diagram, position).toEndpoint()
                         if (target != null && target.componentId != source.componentId) {
-                            connectLogic(state, source, target, position, currentOnMessage)
+                            connectLogic(state, source, target, position)
                         }
                     }
                     movedComponentId = null

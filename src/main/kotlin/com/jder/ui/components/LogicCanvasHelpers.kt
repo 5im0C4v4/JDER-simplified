@@ -165,13 +165,12 @@ internal fun connectLogic(
     first: LogicEndpoint,
     second: LogicEndpoint,
     point: Offset,
-    onMessage: (String) -> Unit,
 ) {
     val wire = resolveLogicWire(state.diagram, first, second, point)
     if (wire != null && state.addWire(wire.sourceId, wire.targetId, wire.targetPin)) {
-        onMessage("Collegamento creato")
+        Toasts.success("Collegamento creato")
     } else {
-        onMessage("Collegamento non valido")
+        Toasts.warning("Collegamento non valido")
     }
 }
 
@@ -183,7 +182,7 @@ internal fun selectLogicElement(state: LogicDiagramState, element: LogicElement)
     }
 }
 
-internal fun handleLogicTap(state: LogicDiagramState, point: Offset, onMessage: (String) -> Unit) {
+internal fun handleLogicTap(state: LogicDiagramState, point: Offset) {
     when (val mode = state.toolMode) {
         LogicToolMode.SELECT ->
             when (val element = hitTestLogicDiagram(state.diagram, point)) {
@@ -199,7 +198,7 @@ internal fun handleLogicTap(state: LogicDiagramState, point: Offset, onMessage: 
                     state.pendingWireSource = null
                 pending == null -> state.pendingWireSource = endpoint
                 else -> {
-                    connectLogic(state, pending, endpoint, point, onMessage)
+                    connectLogic(state, pending, endpoint, point)
                     state.pendingWireSource = null
                 }
             }

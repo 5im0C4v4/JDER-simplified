@@ -34,6 +34,9 @@ class LogicDiagramState :
     override val isSelectTool: Boolean
         get() = toolMode == LogicToolMode.SELECT
 
+    override val imageKey: Any
+        get() = Triple(diagram, showSimulation, simulation.values.takeIf { showSimulation })
+
     override fun withName(diagram: LogicDiagram, name: String) = diagram.copy(name = name)
 
     override fun onDiagramChanged(previous: LogicDiagram, current: LogicDiagram) {

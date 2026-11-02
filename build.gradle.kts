@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+val javaVersion = JavaVersion.VERSION_11
 plugins {
     kotlin("jvm") version "1.9.20"
     id("org.jetbrains.compose") version "1.5.10"
@@ -37,8 +38,8 @@ compose.desktop {
     }
 }
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 }
 spotless {
     kotlin {
@@ -48,8 +49,13 @@ spotless {
 tasks.withType<KotlinCompile>().configureEach {
     dependsOn("clean", "spotlessApply")
     kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs += listOf("-Xjvm-default=all", "-Xjdk-release=11")
+        jvmTarget = javaVersion.toString()
+        freeCompilerArgs += listOf("-Xjvm-default=all", "-Xjdk-release=$javaVersion")
+    }
+}
+tasks.processResources {
+    from("src/web/screenshots") {
+        into("screenshots")
     }
 }
 tasks.withType<Jar>().configureEach {

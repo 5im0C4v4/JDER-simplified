@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CenterFocusWeak
+import androidx.compose.material.icons.filled.CheckBox
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Image
@@ -150,12 +152,24 @@ private fun ToolbarMenuItem(
 }
 
 @Composable
+private fun ToolbarMenuToggleItem(toggle: AppMenuEntry.Toggle, onClick: () -> Unit) {
+    ToolbarMenuItem(
+        toggle.label,
+        if (toggle.isChecked) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+        enabled = toggle.isEnabled,
+        onClick = onClick,
+    )
+}
+
+@Composable
 fun ToolbarFileMenu(
     onNewDiagram: () -> Unit,
     onOpenDiagram: () -> Unit,
     onSaveDiagram: () -> Unit,
     onSaveAsDiagram: () -> Unit,
+    autoSave: AppMenuEntry.Toggle,
     onExportPNG: () -> Unit,
+    autoExport: AppMenuEntry.Toggle,
     hasSelection: Boolean,
     onDeleteSelected: () -> Unit,
 ) {
@@ -188,9 +202,11 @@ fun ToolbarFileMenu(
             ) {
                 runAction(onSaveAsDiagram)
             }
+            ToolbarMenuToggleItem(autoSave) { runAction(autoSave.onToggle) }
             ToolbarMenuItem("Esporta come PNG...", Icons.Default.Image, shortcutLabel("E")) {
                 runAction(onExportPNG)
             }
+            ToolbarMenuToggleItem(autoExport) { runAction(autoExport.onToggle) }
             Divider()
             ToolbarMenuItem(
                 "Elimina Elemento Selezionato",
@@ -204,19 +220,23 @@ fun ToolbarFileMenu(
 }
 
 @Composable
-fun ToolbarExportMenu(onExportPNG: () -> Unit) {
+fun ToolbarExportMenu(onExportPNG: () -> Unit, autoExport: AppMenuEntry.Toggle) {
     val coroutineScope = rememberCoroutineScope()
     var showExportMenu by remember { mutableStateOf(false) }
+    fun runAction(action: () -> Unit) {
+        coroutineScope.launch {
+            delay(150.milliseconds)
+            showExportMenu = false
+            action()
+        }
+    }
     Box {
         TextButton(onClick = { showExportMenu = true }) { Text("Esporta") }
         DropdownMenu(expanded = showExportMenu, onDismissRequest = { showExportMenu = false }) {
             ToolbarMenuItem("Esporta come PNG...", Icons.Default.Image, shortcutLabel("E")) {
-                coroutineScope.launch {
-                    delay(150.milliseconds)
-                    showExportMenu = false
-                    onExportPNG()
-                }
+                runAction(onExportPNG)
             }
+            ToolbarMenuToggleItem(autoExport) { runAction(autoExport.onToggle) }
         }
     }
 }
