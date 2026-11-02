@@ -26,8 +26,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
         text = {
             Text(
                 "Java Diagrammi E/R\n\n" +
-                    "Editor di diagrammi Entità-Relazione, schemi logici e diagrammi delle " +
-                    "Classi, dei Casi d'Uso, di Sequenza e Logici.\n\n" +
+                    "Editor per diagrammi Entità-Relazione.\n\n" +
                     "Riscrittura completa in Kotlin e Compose del software originale creato da " +
                     "Alessandro Ballini e successivamente mantenuto da Gianvito Pio.\n\n" +
                     "Licenza MIT",

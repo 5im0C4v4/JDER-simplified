@@ -9,7 +9,6 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import com.jder.domain.model.DiagramEditorState
-import com.jder.domain.model.DiagramType
 import com.jder.ui.theme.ColorPalettes
 import com.jder.ui.theme.ThemeState
 import com.jder.ui.utils.isMacOS
@@ -19,8 +18,6 @@ private const val GUIDE_URL = "https://jder.it/guida.pdf"
 private const val WEBSITE_URL = "https://jder.it/"
 private const val ISSUES_URL = "https://github.com/LoryPelli/JDER/issues"
 private const val SOURCE_URL = "https://github.com/LoryPelli/JDER"
-
-val diagramTypeKeys = listOf(Key.One, Key.Two, Key.Three, Key.Four, Key.Five, Key.Six)
 
 class DiagramMenuCommands(
     val state: DiagramEditorState<*>,
@@ -88,8 +85,6 @@ fun appMenus(
     commands: DiagramMenuCommands?,
     themeState: ThemeState,
     windowState: WindowState,
-    currentType: DiagramType?,
-    onTypeChange: (DiagramType) -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
     uriHandler: UriHandler,
@@ -97,11 +92,7 @@ fun appMenus(
     if (commands != null) {
         add(AppMenu("File") { fileEntries(commands, onExit) })
         add(AppMenu("Modifica") { editEntries(commands) })
-        add(
-            AppMenu("Vista") {
-                viewEntries(commands.state, themeState, windowState, currentType, onTypeChange)
-            }
-        )
+        add(AppMenu("Vista") { viewEntries(commands.state, themeState, windowState) })
         add(AppMenu("Strumenti") { toolEntries(commands) })
         add(AppMenu("Elemento") { selectionEntries(commands.selectionMenu()) })
     }
@@ -218,8 +209,6 @@ private fun viewEntries(
     state: DiagramEditorState<*>,
     themeState: ThemeState,
     windowState: WindowState,
-    currentType: DiagramType?,
-    onTypeChange: (DiagramType) -> Unit,
 ): List<AppMenuEntry> = buildList {
     add(AppMenuEntry.Action("Zoom In", commandShortcut(Key.Plus, "+"), onClick = state::zoomIn))
     add(AppMenuEntry.Action("Zoom Out", commandShortcut(Key.Minus, "-"), onClick = state::zoomOut))
@@ -230,17 +219,6 @@ private fun viewEntries(
             onClick = state::resetView,
         )
     )
-    add(AppMenuEntry.Separator)
-    DiagramType.entries.forEachIndexed { index, type ->
-        add(
-            AppMenuEntry.Choice(
-                type.tabLabel,
-                isSelected = type == currentType,
-                shortcut = commandShortcut(diagramTypeKeys[index], "${index + 1}"),
-                onSelect = { onTypeChange(type) },
-            )
-        )
-    }
     add(AppMenuEntry.Separator)
     add(
         AppMenuEntry.Toggle("Tema Scuro", isChecked = themeState.isDarkTheme) {

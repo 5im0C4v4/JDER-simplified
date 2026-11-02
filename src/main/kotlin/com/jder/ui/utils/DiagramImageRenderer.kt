@@ -10,27 +10,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
-import com.jder.domain.model.ClassDiagram
 import com.jder.domain.model.ERDiagram
-import com.jder.domain.model.LogicDiagram
-import com.jder.domain.model.LogicSimulation
-import com.jder.domain.model.RelationalDiagram
-import com.jder.domain.model.SequenceDiagram
-import com.jder.domain.model.UseCaseDiagram
 import com.jder.ui.components.DiagramPalette
-import com.jder.ui.components.classDiagramBounds
 import com.jder.ui.components.createDiagramTextMeasurer
-import com.jder.ui.components.drawClassDiagram
 import com.jder.ui.components.drawERDiagram
-import com.jder.ui.components.drawLogicDiagram
-import com.jder.ui.components.drawRelationalDiagram
-import com.jder.ui.components.drawSequenceDiagram
-import com.jder.ui.components.drawUseCaseDiagram
 import com.jder.ui.components.erDiagramBounds
-import com.jder.ui.components.logicDiagramBounds
-import com.jder.ui.components.relationalDiagramBounds
-import com.jder.ui.components.sequenceDiagramBounds
-import com.jder.ui.components.useCaseDiagramBounds
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -44,39 +28,6 @@ private val exportTextMeasurer by lazy { createDiagramTextMeasurer() }
 fun renderERDiagramToBitmap(diagram: ERDiagram, palette: DiagramPalette): ImageBitmap =
     renderDiagramImage(erDiagramBounds(diagram, exportTextMeasurer), palette) {
         drawERDiagram(diagram, palette, exportTextMeasurer)
-    }
-
-fun renderRelationalDiagramToBitmap(
-    diagram: RelationalDiagram,
-    palette: DiagramPalette,
-): ImageBitmap =
-    renderDiagramImage(relationalDiagramBounds(diagram), palette) {
-        drawRelationalDiagram(diagram, palette, exportTextMeasurer)
-    }
-
-fun renderClassDiagramToBitmap(diagram: ClassDiagram, palette: DiagramPalette): ImageBitmap =
-    renderDiagramImage(classDiagramBounds(diagram), palette) {
-        drawClassDiagram(diagram, palette, exportTextMeasurer)
-    }
-
-fun renderUseCaseDiagramToBitmap(diagram: UseCaseDiagram, palette: DiagramPalette): ImageBitmap =
-    renderDiagramImage(useCaseDiagramBounds(diagram, exportTextMeasurer), palette) {
-        drawUseCaseDiagram(diagram, palette, exportTextMeasurer)
-    }
-
-fun renderSequenceDiagramToBitmap(diagram: SequenceDiagram, palette: DiagramPalette): ImageBitmap =
-    renderDiagramImage(sequenceDiagramBounds(diagram, exportTextMeasurer), palette) {
-        drawSequenceDiagram(diagram, palette, exportTextMeasurer)
-    }
-
-fun renderLogicDiagramToBitmap(
-    diagram: LogicDiagram,
-    simulation: LogicSimulation,
-    showSignals: Boolean,
-    palette: DiagramPalette,
-): ImageBitmap =
-    renderDiagramImage(logicDiagramBounds(diagram, exportTextMeasurer), palette) {
-        drawLogicDiagram(diagram, palette, exportTextMeasurer, simulation, showSignals)
     }
 
 private fun renderDiagramImage(

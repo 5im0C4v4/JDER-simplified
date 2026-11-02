@@ -14,9 +14,7 @@ const val COMMAND_LINE_USAGE =
     """Uso: java -jar JDER.jar [--json <file.json>] [--png <file.png>]
 
 Opzioni:
-  --json <file>  apre il diagramma salvato nel file JSON, nella scheda del suo tipo
-                 (se il file non esiste o il tipo non si riconosce, il tipo si sceglie
-                 all'avvio; un file nuovo viene salvato alla prima modifica)
+  --json <file>  apre un diagramma E/R (se il file non esiste, ne crea uno nuovo)
   --png <file>   salva il diagramma come immagine PNG e la aggiorna automaticamente a
                  ogni modifica
   --file <file>  alias di --json
@@ -34,8 +32,6 @@ class CommandLineOptions(
     val showHelp: Boolean = false,
     val warnings: List<String> = emptyList(),
 )
-
-class StartupDiagram(val type: DiagramType?, val pendingOptions: CommandLineOptions?)
 
 fun parseCommandLine(args: Array<String>): CommandLineOptions {
     val files = mutableMapOf<String, File>()
@@ -91,25 +87,33 @@ private fun File.takeIfUsable(option: String, warnings: MutableList<String>): Fi
     return null
 }
 
-fun prepareStartupDiagram(
-    options: CommandLineOptions,
-    openAs: (DiagramType, CommandLineOptions) -> Boolean,
-): StartupDiagram {
-    val jsonFile = options.jsonFile ?: return StartupDiagram(null, options)
-    val type =
-        readDiagramType(jsonFile).getOrElse {
-            warnCannotOpen(jsonFile, it, options)
-            return StartupDiagram(null, null)
+fun prepareStartupDiagram(options: CommandLineOptions, openER: (CommandLineOptions) -> Unit) {
+    val jsonFile = options.jsonFile
+    if (jsonFile != null && jsonFile.exists()) {
+        val type =
+            readDiagramType(jsonFile).getOrElse {
+                warnCannotOpen(jsonFile, it, options)
+                return
+            }
+        if (type != DiagramType.ER) {
+            warnCannotOpen(
+                jsonFile,
+                IllegalArgumentException("il file non contiene un diagramma E/R"),
+                options,
+            )
+            return
         }
-    return when {
-        type == null -> StartupDiagram(null, options)
-        openAs(type, options) -> StartupDiagram(type, null)
-        else -> StartupDiagram(null, null)
     }
+    openER(options)
 }
 
 fun readDiagramType(file: File): Result<DiagramType?> =
-    if (!file.exists()) Result.success(null) else runCatching { detectDiagramType(file) }
+    if (!file.exists()) Result.success(null)
+    else
+        runCatching {
+            detectDiagramType(file)
+                ?: throw IllegalArgumentException("il file non contiene un diagramma riconosciuto")
+        }
 
 fun <T> openStartupDiagram(
     state: DiagramEditorState<T>,

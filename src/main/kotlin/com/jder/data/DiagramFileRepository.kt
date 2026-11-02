@@ -13,6 +13,18 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 private const val DIAGRAM_TYPE_KEY = "diagramType"
+private val unsupportedDiagramMarkers =
+    setOf(
+        "tables",
+        "classes",
+        "actors",
+        "useCases",
+        "systemBoundaries",
+        "lifelines",
+        "messages",
+        "components",
+        "wires",
+    )
 
 class WrongDiagramTypeException(found: DiagramType, expected: DiagramType) :
     Exception(
@@ -82,10 +94,12 @@ private fun readJsonObject(file: File): JsonObject =
 
 private fun detectDiagramType(content: JsonObject): DiagramType? {
     val declared = content[DIAGRAM_TYPE_KEY]?.jsonPrimitive?.contentOrNull
-    DiagramType.entries
-        .find { it.key == declared }
-        ?.let {
-            return it
-        }
-    return DiagramType.entries.find { it.markerKeys.any { entry -> entry in content } }
+    if (declared != null) {
+        return DiagramType.entries.find { it.key == declared }
+            ?: throw IllegalArgumentException("tipo di diagramma non supportato: $declared")
+    }
+    if (unsupportedDiagramMarkers.any { it in content }) {
+        throw IllegalArgumentException("il file contiene un diagramma non E/R")
+    }
+    return DiagramType.entries.find { type -> type.markerKeys.any { it in content } }
 }

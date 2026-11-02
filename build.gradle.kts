@@ -53,11 +53,6 @@ tasks.withType<KotlinCompile>().configureEach {
         freeCompilerArgs += listOf("-Xjvm-default=all", "-Xjdk-release=$javaVersion")
     }
 }
-tasks.processResources {
-    from("src/web/screenshots") {
-        into("screenshots")
-    }
-}
 tasks.withType<Jar>().configureEach {
     manifest {
         attributes["Main-Class"] = "com.jder.MainKt"

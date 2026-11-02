@@ -37,39 +37,6 @@ enum class ERContextMenuType {
     NOTE,
 }
 
-enum class RelationalContextMenuType {
-    TABLE,
-    FOREIGN_KEY,
-    NOTE,
-}
-
-enum class UseCaseContextMenuType {
-    ACTOR,
-    USE_CASE,
-    RELATION,
-    NOTE,
-    SYSTEM,
-}
-
-enum class SequenceContextMenuType {
-    LIFELINE,
-    MESSAGE,
-    FRAGMENT,
-    NOTE,
-}
-
-enum class ClassDiagramContextMenuType {
-    CLASS,
-    RELATION,
-    NOTE,
-}
-
-enum class LogicContextMenuType {
-    COMPONENT,
-    WIRE,
-    NOTE,
-}
-
 class ContextMenuRequest<T>(val position: Offset, val type: T)
 
 class ContextMenuItem(
