@@ -6,6 +6,24 @@ plugins {
     kotlin("plugin.serialization") version "1.9.20"
     id("com.diffplug.spotless") version "8.6.0"
 }
+val platformJarTargets =
+    listOf(
+        "WindowsX64" to "windows-x64",
+        "LinuxX64" to "linux-x64",
+        "LinuxArm64" to "linux-arm64",
+        "MacosX64" to "macos-x64",
+        "MacosArm64" to "macos-arm64",
+    )
+val platformNativeLibraries =
+    mapOf(
+        "windows-x64" to "skiko-windows-x64.dll",
+        "linux-x64" to "libskiko-linux-x64.so",
+        "linux-arm64" to "libskiko-linux-arm64.so",
+        "macos-x64" to "libskiko-macos-x64.dylib",
+        "macos-arm64" to "libskiko-macos-arm64.dylib",
+    )
+val allPlatformNativeFiles =
+    platformNativeLibraries.values.flatMap { listOf(it, "$it.sha256") }.toSet()
 group = "com.jder"
 repositories {
     mavenCentral()
@@ -58,5 +76,34 @@ tasks.withType<Jar>().configureEach {
         attributes["Main-Class"] = "com.jder.MainKt"
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+}
+fun Jar.includeRuntimeClasspath(platform: String? = null) {
+    val retainedNativeFiles =
+        platform?.let { platformNativeLibraries.getValue(it) }
+            ?.let { setOf(it, "$it.sha256") }
+    from(
+        configurations.runtimeClasspath.get().map { dependency ->
+            if (dependency.isDirectory) {
+                dependency
+            } else {
+                zipTree(dependency).matching {
+                    if (retainedNativeFiles != null) {
+                        exclude { entry ->
+                            entry.name in allPlatformNativeFiles && entry.name !in retainedNativeFiles
+                        }
+                    }
+                }
+            }
+        }
+    )
+}
+tasks.named<Jar>("jar") {
+    includeRuntimeClasspath()
+}
+platformJarTargets.forEach { (taskSuffix, platformName) ->
+    tasks.register<Jar>("jar$taskSuffix") {
+        archiveFileName.set("JDER-$platformName.jar")
+        from(sourceSets.main.get().output)
+        includeRuntimeClasspath(platformName)
+    }
 }

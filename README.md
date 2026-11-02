@@ -56,7 +56,25 @@ On Windows PowerShell:
 .\gradlew.bat jar
 ```
 
-The standalone JAR is written to `build/libs/JDER.jar`. Copy it to the vault's `ERModel/` folder.
+The universal standalone JAR is written to `build/libs/JDER.jar`. It includes native libraries for all supported targets.
+
+To also build platform-specific JARs, run:
+
+```powershell
+.\gradlew.bat jar jarWindowsX64 jarLinuxX64 jarLinuxArm64 jarMacosX64 jarMacosArm64
+```
+
+The platform-specific JARs are written to `build/libs/`:
+
+| Target | JAR |
+| --- | --- |
+| Windows x64 | `JDER-windows-x64.jar` |
+| Linux x64 | `JDER-linux-x64.jar` |
+| Linux ARM64 | `JDER-linux-arm64.jar` |
+| macOS x64 | `JDER-macos-x64.jar` |
+| macOS ARM64 | `JDER-macos-arm64.jar` |
+
+Include the universal JAR and any platform-specific JARs as assets in the same GitHub Release. Users should download the platform-specific file matching their system, or the universal JAR if they need one file that supports every listed target.
 
 ## Examples
 
